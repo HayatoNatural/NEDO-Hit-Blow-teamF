@@ -1,9 +1,17 @@
+# coding : UTF-8
+"""
+File Name: hitblow.py
+Description: Hit&Blowの実行
+Created on September 25,2021
+Created by Hayato Mori, Kaito Isshiki, Chao WANG
+"""
 import argparse
 from setup_and_play_game import Playgame
 
 def get_parser() -> argparse.Namespace:
     """コマンドライン引数を解析したものを持つ
-
+    :rtype : argparse.Namespace
+    :return : コマンド値
     """
     parser = argparse.ArgumentParser(description="Hit&Blow, 数当てゲーム")
     parser.add_argument("--ans",default="01245")
@@ -14,7 +22,7 @@ def get_parser() -> argparse.Namespace:
     return args
 
 def main() -> None:
-    """数当てゲームのメイン
+    """Hit&Blowのメイン
     """
     args = get_parser()
     mode = args.mode
