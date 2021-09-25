@@ -75,7 +75,7 @@ class Playgame():
             data = result.json()
             self.room_state = data["state"]
             time.sleep(5)
-        self.opponent_name = data["player2"] if data["player1"] == "F" else data["player1"]
+        self.opponent_name = data["player2"] if data["player1"] == "F2" else data["player1"]
         self.now_player = data["player1"]
 
     def _define_hidden_number_random(self) -> str:
@@ -134,13 +134,11 @@ class Playgame():
                 self._get_table_by_API()
                 self.hit = self.my_history[-1]["hit"]
                 self.blow = self.my_history[-1]["blow"]
-                print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+                print("-----"+self.num+"!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
             else:
                 time.sleep(5)
-                continue
-                
-            if self.hit == self.digits:
-                print("!! 正解です !!")
+                continue       
+            if self.room_state == 3:
                 break
 
     def _get_your_num(self) -> str :
@@ -211,6 +209,7 @@ class Playgame():
         : return : なし
         """
         time.sleep(10)
+        print("-----対戦終了です.")
         url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
         result = session.get(url_get_table)
         data = result.json()

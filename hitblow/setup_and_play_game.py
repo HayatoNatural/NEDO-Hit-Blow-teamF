@@ -3,7 +3,7 @@
 File Name: setup_and_play_game.py
 Description: Hit&Blowの主要なクラス
 Created on September 25,2021
-Created by Hayato Mori, Kaito Isshiki, Chao WANG
+Created by Hayato Mori, Kaito Isshiki, Chao Wang
 """
 import random
 import time
@@ -68,7 +68,7 @@ class Playgame():
 
     def _enterroom_and_registerplayer(self):
         """部屋を作成し, 部屋に入り, 相手が来るまで待機
-        相手が来たらゲームスタート
+        5秒ごとに相手が来ているか確認して,相手が来たらゲームスタート
         : rtype : None
         : return : なし
         """
@@ -129,6 +129,9 @@ class Playgame():
 
     def _play_game_manual(self) -> None:
         """手入力で遊ぶモード
+        対戦続行中で,自分のターンのとき, 推測した値をサーバーにpost
+        5秒ごとに自分のターンが来たかを確認
+
         : rtype : None
         : return : なし
         """
@@ -141,13 +144,12 @@ class Playgame():
                 self._get_table_by_API()
                 self.hit = self.my_history[-1]["hit"]
                 self.blow = self.my_history[-1]["blow"]
-                print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+                print("-----"+self.num + "  {} Hit, {} Blow  !!".format(self.hit,self.blow))
             else:
                 time.sleep(5)
                 continue
                 
-            if self.hit == self.digits:
-                print("!! 正解です !!")
+            if self.room_state == 3:
                 break
 
     def _get_your_num(self) -> str :
@@ -172,7 +174,7 @@ class Playgame():
     def _first_three_times(self) -> None:
         search_list = ["01234","56789","abcde"]
         for i in range(3):
-            self._get_table_by_API_1()
+            self._get_table_by_API()
             if self.room_state == 2 and self.now_player == self.player_name:
                 print("{}回目の入力です.".format(self.count+1))
                 self.num = search_list[i]
@@ -183,11 +185,14 @@ class Playgame():
                 self.list_where_num_is.append(self.hit + self.blow)
                 print("-----",self.num)
                 print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
-                if self.hit == self.digits:
-                    print("!! 正解です !!")
-                    break
             else:
-                print("----------from first3 to 5C----------")
+                time.sleep(5)
+                continue
+            if self.hit == self.digits:
+                print("!! 正解です !!")
+                break
+        else:
+            print("----------from first3 to 5C----------")
 
     def _identify_5_numbers(self):
         pass
@@ -218,6 +223,7 @@ class Playgame():
         : return : なし
         """
         time.sleep(10)
+        print("対戦終了です.")
         url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
         result = session.get(url_get_table)
         data = result.json()
