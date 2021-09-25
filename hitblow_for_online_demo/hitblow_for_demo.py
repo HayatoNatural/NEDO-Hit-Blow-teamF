@@ -6,9 +6,9 @@ def get_parser() -> argparse.Namespace:
 
     """
     parser = argparse.ArgumentParser(description="Hit&Blow, 数当てゲーム")
-    parser.add_argument("--ans",default="01245")
+    parser.add_argument("--ans",default="acdef")
     parser.add_argument("--mode",default="manual")
-    parser.add_argument("--room_id",default="6009")
+    parser.add_argument("--roomid",default="6012")
 
     args = parser.parse_args()
     return args
@@ -18,7 +18,7 @@ def main() -> None:
     """
     args = get_parser()
     mode = args.mode
-    room_id = args.room_id
+    room_id = args.roomid
     ans= args.ans
 
     if args.ans is not None:
