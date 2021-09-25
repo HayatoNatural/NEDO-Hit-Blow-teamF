@@ -1,14 +1,13 @@
 import argparse
-from numberguess import Numberguess
+from setup_and_play_game import Setupgame, Playgame
 
 def get_parser() -> argparse.Namespace:
     """コマンドライン引数を解析したものを持つ
 
     """
     parser = argparse.ArgumentParser(description="Hit&Blow, 数当てゲーム")
-    parser.add_argument("--max_count",default=250)
     parser.add_argument("--ans")
-    parser.add_argument("--mode",default="auto")
+    parser.add_argument("--mode",default="manual")
     args = parser.parse_args()
     return args
 
@@ -17,15 +16,13 @@ def main() -> None:
     """
     args = get_parser()
     mode = args.mode
-    max_count = int(args.max_count)
     ans= args.ans
     if args.ans is not None:
-        runner = Numberguess(max_count=max_count,ans=ans)
+        runner = Playgame(ans=ans)
     else:
-        runner = Numberguess(max_count=max_count)
+        runner = Playgame()
 
     runner.run(mode=mode)
-    print(runner.list_where_num_is)
 
 if __name__ == "__main__":
     main()
