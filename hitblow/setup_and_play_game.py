@@ -3,9 +3,9 @@ import time
 import requests
 session = requests.Session()
 
-class Setupgame():
+class Playgame():
 
-    def __init__(self,ans=None,room_id=6002) -> None:
+    def __init__(self,ans,room_id) -> None:
         self.digits = 5
         self.set_16 = {"0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"}
         if ans is not None:
@@ -21,8 +21,15 @@ class Setupgame():
         self.opponent_name = None
         self.now_player = None
         self.headers = {"content-Type":"application/json"}
-        self.my_history = []
-        self.opponent_history = []
+        self.my_history = None
+        self.opponent_history = None
+        self.count = 0
+        self.list_where_num_is = []
+        self.set_ans_num = {}
+        self.num = None
+        self.hit = None
+        self.blow = None
+
 
     def _enterroom_and_registerplayer(self):
         url_enter_room = self.url + "/rooms"
@@ -34,7 +41,7 @@ class Setupgame():
             result = session.get(url_get_room)
             data = result.json()
             self.room_state = data["state"]
-            time.sleep(10)
+            time.sleep(5)
         self.opponent_name = data["player2"] if data["player1"] == "F" else data["player1"]
         self.now_player = data["player1"]
 
@@ -49,31 +56,14 @@ class Setupgame():
         session.post(url_post_hidden_number,headers=self.headers,json=post_data)
 
 
-class Playgame(Setupgame):
-
-    def __init__(self) -> None:
-        self.count = 0
-        self.my_history = None
-        self.opponent_history = None
-        self.list_where_num_is = []
-        self.set_ans_num = {}
-        self.num = None
-        self.hit = None
-        self.blow = None
-
-    def _get_table_by_API_1(self):
+    def _get_table_by_API(self):
         url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
         result = session.get(url_get_table)
         data = result.json()
         self.room_state = data["state"]
         self.now_player = data["now_player"]
+        self.my_history = data["table"]
 
-    def _get_table_by_API_2(self):
-        url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
-        result = session.get(url_get_table)
-        data = result.json()
-        self.history.append(data["table"])
-        self.opponent_history.append(data["opponent_table"])
 
     def _post_guess_by_API(self):
         url_post_guess = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table/guesses"
@@ -83,19 +73,19 @@ class Playgame(Setupgame):
 
     def _play_game_manual(self) -> None:
         while self.room_state == 2:
-            self._get_table_by_API_1()
+            self._get_table_by_API()
             if self.room_state == 2 and self.now_player == self.player_name:
                 print("{}回目の入力です.".format(self.count+1))
                 self.num = self._get_your_num()
                 self._post_guess_by_API()
-                self._get_table_by_API_2()
-                self.hit = self.history[-1]["hit"]
-                self.blow = self.history[-1]["blow"]
+                self._get_table_by_API()
+                self.hit = self.my_history[-1]["hit"]
+                self.blow = self.my_history[-1]["blow"]
                 print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
             else:
-                time.sleep(1)
-                self._play_game_manual()
-
+                time.sleep(5)
+                continue
+                
             if self.hit == self.digits:
                 print("!! 正解です !!")
                 break
@@ -122,8 +112,8 @@ class Playgame(Setupgame):
                 self.num = search_list[i]
                 self._post_guess_by_API()
                 self._get_table_by_API_2()
-                self.hit = self.history[-1]["hit"]
-                self.blow = self.history[-1]["blow"]
+                self.hit = self.my_history[-1]["hit"]
+                self.blow = self.my_history[-1]["blow"]
                 self.list_where_num_is.append(self.hit + self.blow)
                 print("-----",self.num)
                 print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
@@ -147,6 +137,8 @@ class Playgame(Setupgame):
         : rtype : None
         : return : なし
         """
+        self._enterroom_and_registerplayer()
+        self._post_hidden_number()
         if mode == "auto":
             self._play_game_auto()
         else:
@@ -154,8 +146,14 @@ class Playgame(Setupgame):
         self._show_result()
 
 
-    def _show_result(self,winner,game_end_count) -> None:
-        self._get_table_by_API_2()
+    def _show_result(self) -> None:
+        time.sleep(10)
+        url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
+        result = session.get(url_get_table)
+        data = result.json()
+
+        self.my_history = data["table"]
+        self.opponent_history = data["opponent_table"]
         print("------------------------")
         print("show opponent history")
         print(self.opponent_history)
@@ -163,17 +161,12 @@ class Playgame(Setupgame):
         print("show my history")
         print(self.my_history)
         
-        self._get_table_by_API_3()
+        winner =data["winner"]
+        game_end_count =data["game_end_count"]
         print("------------------------")
         print("勝者は{}です. {}回で正解しました!".format(winner,game_end_count))
         print("------------------------")
 
-    def _get_table_by_API_3(self):
-        url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
-        result = session.get(url_get_table)
-        data = result.json()
-        print(data["winner"])
-        print(data["game_end_count"])
 
 
 
