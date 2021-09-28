@@ -10,9 +10,8 @@ class Numberguess2:
         self.count = 0
         self.history = []
         self.list_num_place = []
-        self.list_possible_ans_combination = []
-        self.list_ans_combination = []    
         self.list_possible_ans = []
+        self.list_ans_combination = []
         if ans is not None:
             self.ans = ans
         else:
@@ -52,61 +51,35 @@ class Numberguess2:
                 print("!! 正解です !!")
                 break
 
-    def _make_list_possible_ans_combination(self) -> None:
+    def _make_list_possible_ans(self) -> None:
         for i in itertools.combinations("01234", self.list_num_place[0]):
             for j in itertools.combinations("56789", self.list_num_place[1]):
                 for k in itertools.combinations("abcde", self.list_num_place[2]):
                     for l in itertools.combinations("f", self.digits-sum(self.list_num_place)):
-                        n = "".join(i+j+k+l)
-                        self.list_possible_ans_combination.append(n)
+                        m = "".join(i+j+k+l)
+                        list_1 = list(m)
+                        for n in itertools.permutations(list_1,5):
+                            o = "".join(n)
+                            self.list_possible_ans.append(o)
+        self._leave_possible_permutation()
 
-    def _remove_impossible_combination(self):
-        hb = self.hit + self.blow
-        for i in self.list_possible_ans_combination[:]:
-            self._check_hit_blow(self.num,i)
-            if self.hit + self.blow != hb:
-                self.list_possible_ans_combination.remove(i)
 
-    def _remove_impossible_permutation(self):
+    def _leave_possible_permutation(self):
         hit = self.hit
-        for i in self.list_possible_ans[:]:
+        list_new_possible_ans = []
+        count = 1
+        for i in self.list_possible_ans:
             self._check_hit_blow(self.num,i)
             # print("hit:{},self_hit:{}, selfnum:{}, k:{}, count:{}".format(hit,self.hit,self.num,i,count))
-            if self.hit != hit:
-                self.list_possible_ans.remove(i)
+            count += 1
+            if self.hit == hit:
+                list_new_possible_ans.append(i)
+        self.list_possible_ans = list_new_possible_ans
 
-    
-    def _identify_number(self):
-        print("----------from first3 to 5C----------")
-        while True:
-            print("{}回目の入力です, 組み合わせの候補は{}通りです.".format(self.count+1,len(self.list_possible_ans_combination)))
-            # print(self.list_possible_ans_combination)
-            self.num = random.choice(self.list_possible_ans_combination)
-            self.history.append(self.num)
-            self.count += 1
-            self._check_hit_blow(self.num,self.ans)
-            print("-----",self.num)
-            print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
-            if self.hit == self.digits:
-                print("正解です！")
-                break
-            elif self.hit + self.blow == self.digits:
-                self.list_ans_combination = [i for i in self.num]
-                for i in itertools.permutations(self.list_ans_combination,5):
-                    m = "".join(i)
-                    self.list_possible_ans.append(m)
-                print("----------from 5C to 5P----------")
-                self._remove_impossible_permutation()
-                self._identify_permutation()
-                break
-            else:
-                self._remove_impossible_combination()
 
     def _identify_permutation(self):
         while True:
-            print("--------------------")
             print("{}回目の入力です, 順列の候補は{}通りです.".format(self.count+1,len(self.list_possible_ans)))
-            print(self.list_possible_ans)
             self.num = random.choice(self.list_possible_ans)
             self.history.append(self.num)
             self.count += 1
@@ -116,7 +89,7 @@ class Numberguess2:
             if self.hit == self.digits:
                 print("正解です！")
                 break
-            self._remove_impossible_permutation()
+            self._leave_possible_permutation()
 
 
     def _show_result(self) -> None:
@@ -135,8 +108,8 @@ class Numberguess2:
 
     def _play_game_auto(self) -> None:
         self._first_three_times()
-        self._make_list_possible_ans_combination()
-        self._identify_number()
+        self._make_list_possible_ans()
+        self._identify_permutation()
         self._show_result()
 
 

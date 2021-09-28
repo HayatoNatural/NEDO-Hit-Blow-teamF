@@ -1,11 +1,19 @@
+# coding : UTF-8
+"""
+File Name: setup_and_play_game.py
+Description: Hit&Blowの主要なクラス
+Created on September 25,2021
+Created by Hayato Mori, Kaito Isshiki, Chao Wang
+"""
 import random
 import time
+import itertools
 import requests
 session = requests.Session()
 
 class Playgame():
     """16進数5桁のHit&Blow
-    手入力で遊ぶモード, 2分探索で遊ぶモード(今後実装)
+    手入力で遊ぶモード, 自動探索で遊ぶモード(今後実装)
 
     :param int digits : 数の桁数
     :param set set_16 : 数に使う16進数の数字の集合
@@ -27,7 +35,7 @@ class Playgame():
     :param int blow : 数字のblow数
     """
 
-    def __init__(self,ans,room_id) -> None:
+    def __init__(self,ans=None,room_id=6000) -> None:
         """コンストラクタ
         :param str ans : 自分の答え(相手に当ててもらう数字)
         :param str room_id : room id(6000~6999)
@@ -52,8 +60,10 @@ class Playgame():
         self.my_history = None
         self.opponent_history = None
         self.count = 0
-        self.list_where_num_is = []
-        self.set_ans_num = {}
+        self.list_num_place = []
+        self.list_possible_ans_combination = []
+        self.list_ans_combination = []    
+        self.list_possible_ans = []
         self.num = None
         self.hit = None
         self.blow = None
@@ -61,7 +71,7 @@ class Playgame():
 
     def _enterroom_and_registerplayer(self):
         """部屋を作成し, 部屋に入り, 相手が来るまで待機
-        相手が来たらゲームスタート
+        5秒ごとに相手が来ているか確認して,相手が来たらゲームスタート
         : rtype : None
         : return : なし
         """
@@ -74,9 +84,10 @@ class Playgame():
             result = session.get(url_get_room)
             data = result.json()
             self.room_state = data["state"]
-            time.sleep(5)
-        self.opponent_name = data["player2"] if data["player1"] == "F2" else data["player1"]
+            time.sleep(3)
+        self.opponent_name = data["player2"] if data["player1"] == "F" else data["player1"]
         self.now_player = data["player1"]
+
 
     def _define_hidden_number_random(self) -> str:
         """相手に当ててもらう答えをつくる
@@ -98,7 +109,7 @@ class Playgame():
 
 
     def _get_table_by_API(self):
-        """APIを用いてサーバーから部屋の状態, ターン, 履歴を取得
+        """APIを用いてサーバーから部屋の状態,ターン,履歴を取得
         : rtype : None
         : return : なし
         """
@@ -108,7 +119,6 @@ class Playgame():
         self.room_state = data["state"]
         self.now_player = data["now_player"]
         self.my_history = data["table"]
-
 
     def _post_guess_by_API(self):
         """APIを用いてサーバーに予想した相手の数字をポスト
@@ -122,6 +132,9 @@ class Playgame():
 
     def _play_game_manual(self) -> None:
         """手入力で遊ぶモード
+        対戦続行中で,自分のターンのとき, 推測した値をサーバーにpost
+        5秒ごとに自分のターンが来たかを確認
+
         : rtype : None
         : return : なし
         """
@@ -134,10 +147,11 @@ class Playgame():
                 self._get_table_by_API()
                 self.hit = self.my_history[-1]["hit"]
                 self.blow = self.my_history[-1]["blow"]
-                print("-----"+self.num+"!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+                print("-----"+self.num + "  {} Hit, {} Blow  !!".format(self.hit,self.blow))
             else:
                 time.sleep(5)
-                continue       
+                continue
+                
             if self.room_state == 3:
                 break
 
@@ -162,33 +176,125 @@ class Playgame():
 
     def _first_three_times(self) -> None:
         search_list = ["01234","56789","abcde"]
-        for i in range(3):
-            self._get_table_by_API_1()
-            if self.room_state == 2 and self.now_player == self.player_name:
+        while True:
+            self._get_table_by_API()
+            if self.room_state == 2 and self.now_player == self.player_name and self.count != 3:
                 print("{}回目の入力です.".format(self.count+1))
-                self.num = search_list[i]
+                self.num = search_list[self.count]
+                self.count += 1
                 self._post_guess_by_API()
-                self._get_table_by_API_2()
+                self._get_table_by_API()
                 self.hit = self.my_history[-1]["hit"]
                 self.blow = self.my_history[-1]["blow"]
-                self.list_where_num_is.append(self.hit + self.blow)
+                self.list_num_place.append(self.hit + self.blow)
                 print("-----",self.num)
                 print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
-                if self.hit == self.digits:
-                    print("!! 正解です !!")
-                    break
+            if self.count == 3:
+                break
+            if self.room_state == 3:
+                break
             else:
-                print("----------from first3 to 5C----------")
+                time.sleep(1)
+                continue
 
-    def _identify_5_numbers(self):
-        pass
 
-    def _play_game_auto(self):
+    def _make_list_possible_ans_combination(self) -> None:
+        for i in itertools.combinations("01234", self.list_num_place[0]):
+            for j in itertools.combinations("56789", self.list_num_place[1]):
+                for k in itertools.combinations("abcde", self.list_num_place[2]):
+                    for l in itertools.combinations("f", self.digits-sum(self.list_num_place)):
+                        n = "".join(i+j+k+l)
+                        self.list_possible_ans_combination.append(n)
+
+
+    def _remove_impossible_combination(self):
+        hb = self.hit + self.blow
+        for i in self.list_possible_ans_combination[:]:
+            self._check_hit_blow(self.num,i)
+            if self.hit + self.blow != hb:
+                self.list_possible_ans_combination.remove(i)
+
+
+    def _remove_impossible_permutation(self):
+        hit = self.hit
+        for i in self.list_possible_ans[:]:
+            self._check_hit_blow(self.num,i)
+            # print("hit:{},self_hit:{}, selfnum:{}, k:{}, count:{}".format(hit,self.hit,self.num,i,count))
+            if self.hit != hit:
+                self.list_possible_ans.remove(i)
+
+    
+    def _check_hit_blow(self,num,ans) -> None:
+        self.hit = 0
+        self.blow = 0
+        for i in range(self.digits):
+            if num[i] == ans[i]:
+                self.hit += 1
+            else:
+                if num[i] in ans:
+                    self.blow += 1
+
+
+    def _identify_number(self) -> None:
+        print("----------from first3 to 5C----------")
+        while True:
+            self._get_table_by_API()
+            if self.room_state == 2 and self.now_player == self.player_name:
+                print("{}回目の入力です, 組み合わせの候補は{}通りです.".format(self.count+1,len(self.list_possible_ans_combination)))
+                self.count += 1
+                self.num = random.choice(self.list_possible_ans_combination)
+                self._post_guess_by_API()
+                self._get_table_by_API()
+                self.hit = self.my_history[-1]["hit"]
+                self.blow = self.my_history[-1]["blow"]
+                print("-----",self.num)
+                print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+                if self.hit + self.blow == self.digits:
+                    self.list_ans_combination = [i for i in self.num]
+                    for i in itertools.permutations(self.list_ans_combination,5):
+                        m = "".join(i)
+                        self.list_possible_ans.append(m)
+                    print("----------from 5C to 5P----------")
+                    self._remove_impossible_permutation()
+                    self._identify_permutation()
+                    break
+                else:
+                    self._remove_impossible_combination()
+            if self.room_state == 3:
+                break
+            else:
+                time.sleep(1)
+                continue
+
+            
+    def _identify_permutation(self) -> None:
+        while True:
+            self._get_table_by_API()
+            if self.room_state == 2 and self.now_player == self.player_name:
+                print("{}回目の入力です, 順列の候補は{}通りです.".format(self.count+1,len(self.list_possible_ans)))
+                self.count += 1
+                self.num = random.choice(self.list_possible_ans)
+                self._post_guess_by_API()
+                self._get_table_by_API()
+                self.hit = self.my_history[-1]["hit"]
+                self.blow = self.my_history[-1]["blow"]
+                print("-----",self.num)
+                print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+                self._remove_impossible_permutation()
+            if self.room_state == 3:
+                break
+            else:
+                time.sleep(1)
+                continue
+
+
+    def _play_game_auto(self) -> None:
         self._first_three_times()
-        self._identify_5_numbers()
+        self._make_list_possible_ans_combination()
+        self._identify_number()
 
 
-    def run(self, mode="manual") -> None:
+    def run(self, mode="auto") -> None:
         """ 数当てゲーム実行ランナー
         : param str mode : ゲームの実行モード("manual","auto")
         : rtype : None
@@ -208,8 +314,9 @@ class Playgame():
         : rtype : None
         : return : なし
         """
-        time.sleep(10)
-        print("-----対戦終了です.")
+        time.sleep(3)
+        print("--------------------")
+        print("対戦終了です.")
         url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
         result = session.get(url_get_table)
         data = result.json()

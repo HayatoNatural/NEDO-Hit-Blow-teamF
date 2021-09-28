@@ -14,9 +14,9 @@ def get_parser() -> argparse.Namespace:
     :return : コマンド値
     """
     parser = argparse.ArgumentParser(description="Hit&Blow, 数当てゲーム")
-    parser.add_argument("--ans",default="01245")
-    parser.add_argument("--mode",default="manual")
-    parser.add_argument("--roomid",default="6012")
+    parser.add_argument("--ans",default=None)
+    parser.add_argument("--mode",default="auto")
+    parser.add_argument("--roomid",default="6016")
 
     args = parser.parse_args()
     return args
