@@ -6,7 +6,7 @@ Created on September 25,2021
 Created by Hayato Mori, Kaito Isshiki, Chao Wang
 """
 import argparse
-from setup_and_play_game import Playgame
+from class_play_game import Playgame
 
 def get_parser() -> argparse.Namespace:
     """コマンドライン引数を解析したものを持つ
