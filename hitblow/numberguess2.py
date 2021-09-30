@@ -37,7 +37,7 @@ class Numberguess2:
                     self.blow += 1
 
 
-    def _first_three_times(self) -> None:
+    def _first_3_times(self) -> None:
         search_list = ["01234","56789","abcde"]
         for i in range(3):
             print("{}回目の入力です".format(self.count+1))
@@ -58,6 +58,29 @@ class Numberguess2:
                 for k in itertools.combinations("abcde", self.list_num_place[2]):
                     for l in itertools.combinations("f", self.digits-sum(self.list_num_place)):
                         n = "".join(i+j+k+l)
+                        self.list_possible_ans_combination.append(n)
+
+
+    def _first_2_times(self) -> None:
+        search_list = ["01234","56789"]
+        for i in range(2):
+            print("{}回目の入力です".format(self.count+1))
+            self.num = search_list[i]
+            self.history.append(self.num)
+            self.count += 1
+            self._check_hit_blow(self.num,self.ans)
+            self.list_num_place.append(self.hit+self.blow)
+            print("-----",self.num)
+            print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+            if self.hit == self.digits:
+                print("!! 正解です !!")
+                break
+
+    def _make_list_possible_ans_combination_2(self) -> None:
+        for i in itertools.combinations("01234", self.list_num_place[0]):
+            for j in itertools.combinations("56789", self.list_num_place[1]):
+                    for k in itertools.combinations("abcdef", self.digits-sum(self.list_num_place)):
+                        n = "".join(i+j+k)
                         self.list_possible_ans_combination.append(n)
 
     def _remove_impossible_combination(self):
@@ -134,8 +157,8 @@ class Numberguess2:
         print("------------------------")
 
     def _play_game_auto(self) -> None:
-        self._first_three_times()
-        self._make_list_possible_ans_combination()
+        self._first_2_times()
+        self._make_list_possible_ans_combination_2()
         self._identify_number()
         self._show_result()
 
