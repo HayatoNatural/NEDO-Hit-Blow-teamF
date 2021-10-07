@@ -28,7 +28,7 @@ def main() -> None:
     web画面だけ表示しておいて, ボタンを押すと部屋作成ー自動対戦が始まる
     """
     initialize_streamlit()
-    room_id = st.number_input('部屋番号を入力してね',min_value=6060)
+    room_id = st.number_input('部屋番号を入力してね',min_value=6100)
 
     args = get_parser()
     mode = args.mode
