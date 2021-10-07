@@ -8,7 +8,7 @@ Created by Hayato Mori, Kaito Isshiki, Chao Wang
 import argparse
 import time
 import streamlit as st
-from class_play_game import Playgame,initialize_streamlit
+from F2_class_play_game import Playgame,initialize_streamlit
 
 def get_parser() -> argparse.Namespace:
     """コマンドライン引数を解析したものを持つ
@@ -28,7 +28,7 @@ def main() -> None:
     web画面だけ表示しておいて, ボタンを押すと部屋作成ー自動対戦が始まる
     """
     initialize_streamlit()
-    room_id = st.number_input('部屋番号を入力してね',min_value=6100)
+    room_id = st.number_input('部屋番号を入力してね',min_value=6060)
 
     args = get_parser()
     mode = args.mode
