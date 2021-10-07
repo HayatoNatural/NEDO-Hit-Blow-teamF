@@ -4,7 +4,7 @@ import itertools
 import argparse
 
 class Numberguess2:
-    
+
     def __init__(self,ans=None) -> None:
         self.digits = 5
         self.count = 0
@@ -139,4 +139,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
