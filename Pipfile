@@ -5,6 +5,9 @@ name = "pypi"
 
 [packages]
 requests = "*"
+numpy = "*"
+pandas = "*"
+streamlit = "*"
 
 [dev-packages]
 pytest = "==6.2.2"
