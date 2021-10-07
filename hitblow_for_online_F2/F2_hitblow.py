@@ -8,7 +8,7 @@ Created by Hayato Mori, Kaito Isshiki, Chao Wang
 import argparse
 import time
 import streamlit as st
-from class_play_game import Playgame,initialize_streamlit
+from F2_class_play_game import Playgame,initialize_streamlit
 
 def get_parser() -> argparse.Namespace:
     """コマンドライン引数を解析したものを持つ

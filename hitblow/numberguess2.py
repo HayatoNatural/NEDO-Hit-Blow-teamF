@@ -1,23 +1,31 @@
+from logging import PlaceHolder
 import random
 from typing import List,Tuple
 import itertools
 import argparse
+import streamlit as st
+import time
+import math
+from PIL import Image
 
 class Numberguess2:
-    
+
     def __init__(self,ans=None) -> None:
         self.digits = 5
         self.count = 0
         self.history = []
         self.list_num_place = []
         self.list_possible_ans_combination = []
-        self.list_ans_combination = []    
+        self.list_ans_combination = []
         self.list_possible_ans = []
         if ans is not None:
             self.ans = ans
         else:
             self.ans = self._define_answer()
         self.num = None
+        self.player_level = 1
+        self.win_in_a_row = 1
+
 
     def _define_answer(self) -> str:
         Tuple_16 = ("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f")
@@ -83,6 +91,7 @@ class Numberguess2:
                         n = "".join(i+j+k)
                         self.list_possible_ans_combination.append(n)
 
+
     def _remove_impossible_combination(self):
         hb = self.hit + self.blow
         for i in self.list_possible_ans_combination[:]:
@@ -98,7 +107,7 @@ class Numberguess2:
             if self.hit != hit:
                 self.list_possible_ans.remove(i)
 
-    
+
     def _identify_number(self):
         print("----------from first3 to 5C----------")
         while True:
@@ -142,7 +151,7 @@ class Numberguess2:
             self._remove_impossible_permutation()
 
 
-    def _show_result(self) -> None:
+    def _show_result_vscode(self) -> None:
         print("------------------------")
         print("show history")
         for k,v in enumerate(self.history):
@@ -156,11 +165,44 @@ class Numberguess2:
 
         print("------------------------")
 
+    def _show_result_streamlit(self):
+        st.subheader("正解は‥【{}】！ やったね, {}回で正解できた！".format(self.ans,self.count))
+        new_exp,remaining_exp = self._get_experience()
+        st.write("君は{}経験値を得た！今まで得た合計経験値は{}だ！".format(new_exp,st.session_state.exp))
+        st.write("君の現在のレベル : {}, 次のレベルまであと{}経験値だ！".format(st.session_state.level,remaining_exp))
+        st.write("対戦回数 : {}".format(st.session_state.game_count))
+        time.sleep(1)
+        st.balloons()
+
+    def _get_experience(self):
+        new_exp = round(3000*(1+(self.win_in_a_row-1)/4)/self.count)
+        st.session_state.game_count += 1
+        st.session_state.exp += new_exp
+        for i in range(200):
+            if i**3/3 <= st.session_state.exp and st.session_state.exp < (i+1)**3/3:
+                st.session_state.level = i
+                remaining_exp = round((i+1)**3/3 - st.session_state.exp)
+                break
+        return new_exp,remaining_exp
+
     def _play_game_auto(self) -> None:
-        self._first_2_times()
-        self._make_list_possible_ans_combination_2()
+        self._first_3_times()
+        self._make_list_possible_ans_combination()
         self._identify_number()
-        self._show_result()
+        self._show_result_vscode()
+        self._show_result_streamlit()
+
+    def _initialize_streamlit(self):
+        st.title("Welcome to Hit&Blow World!")
+        st.subheader("ここは, 1:1の数当てゲームで勝負する世界.")
+        st.subheader("524160通りから, 相手の数字を当てて強くなろう！")
+        st.image("picture.jpg")
+        if 'game_count' not in st.session_state:
+            st.session_state.game_count = 0
+        if 'exp' not in st.session_state:
+            st.session_state.exp = 0
+        if 'level' not in st.session_state:
+            st.session_state.level = 1
 
 
 def get_parser() -> argparse.Namespace:
@@ -179,14 +221,14 @@ def main() -> None:
     """
     args = get_parser()
     ans= args.ans
-
     if args.ans is not None:
         runner = Numberguess2(ans=ans)
     else:
         runner = Numberguess2()
 
-    runner._play_game_auto()
+    runner._initialize_streamlit()
+    if st.button("クリックすると対戦が始まるよ!"):
+        runner._play_game_auto()
 
 if __name__ == "__main__":
     main()
-

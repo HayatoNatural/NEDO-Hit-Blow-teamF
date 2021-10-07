@@ -17,5 +17,7 @@ pyenv local 3.9.1
 pyenv rehash
 pipenv install --dev --python 3.9.1
 pipenv shell
-.\.venv\Scripts\activate
+(.\.venv\Scripts\activate)
+2回目以降
+& c:/Users/Hayato/NEDO-Hit-Blow-teamF/.venv/Scripts/Activate.ps1
 ```

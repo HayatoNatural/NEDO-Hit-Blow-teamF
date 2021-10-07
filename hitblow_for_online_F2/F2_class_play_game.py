@@ -73,7 +73,7 @@ class Playgame():
         self.room_state = 1
         self.player_id_F = "e6e4dcbe-ec3c-4c2a-b228-67d1acee3c81"
         self.player_id_F2 = "19dfceb3-46be-4d0e-94e2-3aa3333a4442"
-        self.player_name = "F"
+        self.player_name = "F2"
         self.opponent_name = None
         self.now_player = None
         self.headers = {"content-Type":"application/json"}
@@ -106,7 +106,7 @@ class Playgame():
         : return : なし
         """
         url_enter_room = self.url + "/rooms"
-        post_data = {"player_id":self.player_id_F, "room_id":self.room_id}
+        post_data = {"player_id":self.player_id_F2, "room_id":self.room_id}
         session.post(url_enter_room,headers=self.headers,json=post_data)
 
         while self.room_state == 1:
@@ -125,7 +125,7 @@ class Playgame():
         : return : なし
         """
         url_post_hidden_number = self.url + "/rooms/" + self.room_id + "/players/" + self.player_name + "/hidden"
-        post_data = {"player_id":self.player_id_F, "hidden_number":self.ans}
+        post_data = {"player_id":self.player_id_F2, "hidden_number":self.ans}
         session.post(url_post_hidden_number,headers=self.headers,json=post_data)
 
 
@@ -147,7 +147,7 @@ class Playgame():
         : return : なし
         """
         url_post_guess = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table/guesses"
-        post_data = {"player_id": self.player_id_F, "guess": self.num}
+        post_data = {"player_id": self.player_id_F2, "guess": self.num}
         session.post(url_post_guess, headers=self.headers, json=post_data)
 
 
