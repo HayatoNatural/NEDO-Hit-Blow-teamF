@@ -10,6 +10,7 @@ import time
 import itertools
 import streamlit as st
 import requests
+import pygame
 session = requests.Session()
 
 def initialize_streamlit() ->None:
@@ -53,6 +54,7 @@ class Playgame():
     :param str num : サーバーにpostする,こちらが予想した相手の数字
     :param int hit : 数字のhit数
     :param int blow : 数字のblow数
+    :param int volume:音量(0～1で変更)
     """
 
     def __init__(self,ans=None,room_id=6000) -> None:
@@ -88,6 +90,7 @@ class Playgame():
         self.opponent_history = None
         self.count = 0
         self.winner = None
+        self.volume = 0.3
 
     def _define_hidden_number_random(self) -> str:
         """相手に当ててもらう答えをつくる
@@ -467,3 +470,64 @@ class Playgame():
         st.write("君は{}経験値を得た！今まで得た合計経験値は{}だ！".format(new_exp,st.session_state.exp))
         st.write("君の現在のレベル : {}, 次のレベルまであと{}経験値だ！".format(st.session_state.level,remaining_exp))
         st.write("対戦回数 : {}".format(st.session_state.game_count))
+
+    def waiting(self,num:int,playtime:int=None) -> None:
+        """待機時間中音楽再生
+        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
+        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load("hitblow/waiting.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+        #time.sleep(playtime)                         # 音楽の再生時間
+
+    def game_start(self,num:int,playtime:int=None) -> None:
+        """ゲーム開始時音楽再生
+        :param int num:再生回数(1回しか再生しないので1でok)
+        :param int playtime:再生時間(デフォルト値Noneで良い)
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load("hitblow/game_start.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+        #time.sleep(playtime)                         # 音楽の再生時間
+
+
+    def battle(self,num:int,playtime:int=None) -> None:
+        """戦闘中音楽再生
+        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
+        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load("hitblow/Battle.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+        #time.sleep(playtime)                         # 音楽の再生時間
+
+    def winner(self,num:int,playtime:int=None) -> None:
+        """勝利したときの音楽再生
+        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
+        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load("hitblow/winner.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+        #time.sleep(playtime)                         # 音楽の再生時間
+
+    def loser(self,num:int,playtime:int=None) -> None:
+        """敗北したときの音楽再生
+        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
+        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load("hitblow/loser.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+        #time.sleep(playtime)                         # 音楽の再生時間
+
+    def music_stop(self) -> None:
+        """再生中の音楽停止
+        """
+        pygame.mixer.music.stop()               # 再生の終了
