@@ -196,7 +196,8 @@ class Numberguess2:
         st.title("Welcome to Hit&Blow World!")
         st.subheader("ここは, 1:1の数当てゲームで勝負する世界.")
         st.subheader("524160通りから, 相手の数字を当てて強くなろう！")
-        st.image("picture.jpg")
+        image = Image.open('hitblow/picture.jpg')
+        st.image(image)
         if 'game_count' not in st.session_state:
             st.session_state.game_count = 0
         if 'exp' not in st.session_state:
