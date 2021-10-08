@@ -30,6 +30,8 @@ def main() -> None:
     initialize_streamlit()
     room_id = st.number_input('部屋番号を入力してね',min_value=6100)
 
+
+
     args = get_parser()
     mode = args.mode
     # room_id = args.roomid
@@ -38,8 +40,13 @@ def main() -> None:
         runner = Playgame(ans=ans,room_id=room_id)
     else:
         runner = Playgame(room_id=room_id)
+    runner._waiting_song(num = -1, playtime = None)
+    
+    
 
     if st.button("クリックすると部屋を作成して対戦を始めるよ"):
+        runner._music_stop()
+        runner._game_start_song(num = 1,playtime = None)
         time.sleep(3)
         runner.run(mode=mode)
 

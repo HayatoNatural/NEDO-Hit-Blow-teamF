@@ -10,6 +10,7 @@ import time
 import itertools
 import streamlit as st
 import requests
+from PIL import Image
 session = requests.Session()
 
 def initialize_streamlit() ->None:
@@ -21,7 +22,8 @@ def initialize_streamlit() ->None:
     st.title("Welcome to Hit&Blow World!")
     st.subheader("ここは, 1:1の数当てゲームで勝負する世界.")
     st.subheader("524160通りから, 相手の数字を当てて強くなろう！")
-    st.image("picture.jpg")
+    image = Image.open('hitblow_for_online_F2/picture.jpg')
+    st.image(image)
     if 'game_count' not in st.session_state:
         st.session_state.game_count = 0
     if 'exp' not in st.session_state:
