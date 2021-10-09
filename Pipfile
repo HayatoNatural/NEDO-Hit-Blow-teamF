@@ -8,6 +8,7 @@ requests = "*"
 numpy = "*"
 pandas = "*"
 streamlit = "*"
+pygame = "*"
 
 [dev-packages]
 pytest = "==6.2.2"
