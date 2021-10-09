@@ -68,6 +68,7 @@ class Playgame():
     :param int hit : 数字のhit数
     :param int blow : 数字のblow数
     :param int volume:音量(0～1で変更)
+    :param int remaining_exp_level:レベルアップに必要な経験値を保存する用
     """
 
     def __init__(self,ans=None,room_id=6000) -> None:
@@ -104,6 +105,7 @@ class Playgame():
         self.count = 0
         self.winner = None
         self.volume = 0.3
+        self.remaining_exp_level = 0
 
     def _waiting_song(self,num:int,playtime:int=None) -> None:
         """待機時間中音楽再生
@@ -161,6 +163,17 @@ class Playgame():
         pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
         #time.sleep(playtime)                         # 音楽の再生時間
 
+    def _level_up_song(self,num:int,playtime:int=None) -> None:
+        """レベルアップ時の音楽再生
+        :param int num:再生回数(基本1回しか流さないので1)
+        :param int playtime:再生時間(デフォルト値Noneで良い)
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load("hitblow\level_up.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+        #time.sleep(playtime)                         # 音楽の再生時間
+
     def _music_stop(self) -> None:
         """再生中の音楽停止
         """
@@ -192,6 +205,10 @@ class Playgame():
             data = result.json()
             self.room_state = data["state"]
             time.sleep(3)
+        self._music_stop()
+        self._game_start_song(num = 1,playtime = None)
+        time.sleep(3)
+        self._battle_song(num = -1,playtime = None)
         self.opponent_name = data["player2"] if data["player1"] == "F" else data["player1"]
         self.now_player = data["player1"]
 
@@ -460,7 +477,6 @@ class Playgame():
         """
         place = st.empty()
         place.write("対戦中・・・")
-        self._battle_song(num = -1,playtime = None)
         self._enterroom_and_registerplayer()
         self._post_hidden_number()
         if mode == "auto":
@@ -523,6 +539,8 @@ class Playgame():
                 st.session_state.level = i
                 remaining_exp = round((i+1)**3/3 - st.session_state.exp)
                 break
+            elif i**3/3 >=st.session_state.exp and st.session_state.exp >(i-1)**3/3:
+                self.remaining_exp_level = round((i)**3/3 - st.session_state.exp)
         return new_exp,remaining_exp
 
     def _show_result_streamlit(self) -> None:
@@ -532,6 +550,13 @@ class Playgame():
         : return : なし
         """
         new_exp,remaining_exp = self._get_experience()
+        st.write("君は{}経験値を得た！今まで得た合計経験値は{}だ！".format(new_exp,st.session_state.exp))
+        if self.remaining_exp_level <= new_exp:
+            self._level_up_song(num = 1,playtime = None)
+            img = Image.open('hitblow\level-up.gif')
+            st.image(img)
+            time.sleep(3)
+            
         if self.winner == self.player_name:
             self._winner_song(num = 1, playtime = 50)
             st.subheader("勝利だ,おめでとう！正解は‥【{}】！ {}回で正解できた！".format(self.num,self.count))
@@ -545,8 +570,6 @@ class Playgame():
             self._loser_song(num = 1, playtime = 50)
             st.subheader("負けてしまった・・・次は勝とう！")
 
-
-        st.write("君は{}経験値を得た！今まで得た合計経験値は{}だ！".format(new_exp,st.session_state.exp))
         st.write("君の現在のレベル : {}, 次のレベルまであと{}経験値だ！".format(st.session_state.level,remaining_exp))
         st.write("対戦回数 : {}".format(st.session_state.game_count))
 
