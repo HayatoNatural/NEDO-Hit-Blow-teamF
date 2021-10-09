@@ -18,7 +18,7 @@ class Playgame():
     手入力で遊ぶモード, 自動探索で遊ぶモード(今後実装)
 
     :param int digits : 数の桁数
-    :param set set_16 : 数に使う16進数の数字の集合
+    :param Tuple Tuple_16 : 数に使う16進数の数字のタプル
     :param str ans : 自分の答え(相手に当ててもらう数字)
     :param str self.url : API使用の時のURLの共通部分
     :param str room_id : room id(6000~6999)
@@ -45,7 +45,7 @@ class Playgame():
         : return : なし
         """
         self.digits = 5
-        self.set_16 = {"0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"}
+        self.Tuple_16 = ("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f")
         if ans is not None:
             self.ans = ans
         else:
@@ -76,7 +76,7 @@ class Playgame():
         : rtype : str
         : return : ans
         """
-        ans_list = random.sample(self.set_16, self.digits)
+        ans_list = random.sample(self.Tuple_16, self.digits)
         ans = "".join(ans_list)
         return ans
 
@@ -169,7 +169,7 @@ class Playgame():
             num = input("16進数で5桁の重複しない数字を入力してください ==> ")
             judge = True
             for i in num:
-                if i not in self.set_16:
+                if i not in self.Tuple_16:
                     judge = False
             if judge == True and len(num) == self.digits and len(set(num)) == self.digits:
                 return num
@@ -177,10 +177,10 @@ class Playgame():
                 print("もう一度入力しなおしてください(16進数, 5桁, 重複なし)")
 
 
-    def _first_three_times(self) -> None:
+    def _first_2_times(self) -> None:
         """自動数当てモードで最初に行う, 答えとなる数字がどのグループに何個あるのか特定
         1秒ごとにget_tableで状態を確認し,
-        対戦続行中で,自分のターンのとき, 1,2,3回目に01234,56789,abcdeを選んでself.numに格納
+        対戦続行中で,自分のターンのとき, 1,2回目に01234,56789を選んでself.numに格納
         post_guessし, 帰ってきたhit,blowの和をlist_ans_numに格納
         remove_impossible_combinationを行う
         自分のターンで無かったら, 1秒待機
@@ -188,10 +188,10 @@ class Playgame():
         : rtype : None
         : return : なし
         """
-        search_list = ["01234","56789","abcde"]
+        search_list = ["01234","56789"]
         while True:
             self._get_table_by_API()
-            if self.room_state == 2 and self.now_player == self.player_name and self.count != 3:
+            if self.room_state == 2 and self.now_player == self.player_name and self.count != 2:
                 print("{}回目の入力です.".format(self.count+1))
                 self.num = search_list[self.count]
                 self.count += 1
@@ -202,9 +202,7 @@ class Playgame():
                 self.list_num_place.append(self.hit + self.blow)
                 print("-----",self.num)
                 print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
-            if self.count == 3:
-                break
-            if self.room_state == 3:
+            if self.count == 3 or self.room_state == 3:
                 break
             else:
                 time.sleep(0.5)
@@ -220,11 +218,9 @@ class Playgame():
         """
         for i in itertools.combinations("01234", self.list_num_place[0]):
             for j in itertools.combinations("56789", self.list_num_place[1]):
-                for k in itertools.combinations("abcde", self.list_num_place[2]):
-                    for l in itertools.combinations("f", self.digits-sum(self.list_num_place)):
-                        n = "".join(i+j+k+l)
-                        self.list_possible_ans_combination.append(n)
-
+                for k in itertools.combinations("abcdef", self.digits-sum(self.list_num_place)):
+                    n = "".join(i+j+k)
+                    self.list_possible_ans_combination.append(n)
 
     def _remove_impossible_combination(self):
         """自動数当てモードの3番目で使用
@@ -252,7 +248,6 @@ class Playgame():
         hit = self.hit
         for i in self.list_possible_ans[:]:
             self._check_hit_blow(self.num,i)
-            # print("hit:{},self_hit:{}, selfnum:{}, k:{}, count:{}".format(hit,self.hit,self.num,i,count))
             if self.hit != hit:
                 self.list_possible_ans.remove(i)
 
