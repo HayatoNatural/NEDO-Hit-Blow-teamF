@@ -45,9 +45,6 @@ def main() -> None:
     
 
     if st.button("クリックすると部屋を作成して対戦を始めるよ"):
-        runner._music_stop()
-        runner._game_start_song(num = 1,playtime = None)
-        time.sleep(3)
         runner.run(mode=mode)
 
 if __name__ == "__main__":
