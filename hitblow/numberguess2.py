@@ -1,11 +1,8 @@
-from logging import PlaceHolder
 import random
-from typing import List,Tuple
 import itertools
 import argparse
 import streamlit as st
 import time
-import math
 from PIL import Image
 
 class Numberguess2:

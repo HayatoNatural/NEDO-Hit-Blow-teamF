@@ -1,8 +1,42 @@
 import random
 import itertools
 import argparse
-import streamlit as st
+import time
 from PIL import Image
+import streamlit as st
+st.set_page_config(layout="wide")
+col1,col2 =st.columns([8,2])
+col4,space,col6 =st.columns([7,1,4])
+
+
+def initialize_streamlit() ->None:
+    """クラスを定義する前にweb上で画面を出しておく
+    状態量として, 試合数, 経験値, レベル, 連勝数を定義し, 初期化しておく(マジックコマンド的な)
+    : rtype : None
+    : return : なし
+    """
+    col1.title("Welcome to Hit&Blow Game！16進数5桁の秘密の数字を当てよう！")
+    col1.subheader("対戦すると経験値がもらえるよ. 経験値は当てた回数や連勝数に応じて増えるぞ！")
+    col1.subheader("経験値が貯まるとレベルアップだ！いずれはキャラが進化するかも‥？")
+    # st.markdown("**_524160_**通りから相手の数字を当ててレベルアップしよう！")
+    if 'game_count' not in st.session_state:
+        st.session_state.game_count = 0
+    if 'exp' not in st.session_state:
+        st.session_state.exp = 0
+    if 'level' not in st.session_state:
+        st.session_state.level = 1
+    if 'win_in_a_row' not in st.session_state:
+        st.session_state.win_in_a_row = 0
+    name = col4.selectbox("キャラクターを選んでね",["ジャック","クリス","フローラ","ドロシー"])
+    st.session_state.chara_name = name
+    pic_url1 = "picture/"+name+"-1.jpg"
+    pic_url2 = "picture/"+name+"-2.jpg"
+    if st.session_state.level < 20:
+        image = Image.open(pic_url1)
+        col4.image(image)
+    else:
+        image = Image.open(pic_url2)
+        col4.image(image)
 
 class Playgame_solo:
 
@@ -22,36 +56,11 @@ class Playgame_solo:
         else:
             self.ans = self._define_answer()
         self.num = None
-        self.picture_place = st.empty()
 
     def _define_answer(self) -> str:
         ans_list = random.sample(self.Tuple_16, self.digits)
         ans = "".join(ans_list)
         return ans
-
-    def initialize_streamlit(self) ->None:
-        """クラスを定義する前にweb上で画面を出しておく
-        状態量として, 試合数, 経験値, レベル, 連勝数を定義し, 初期化しておく(マジックコマンド的な)
-        : rtype : None
-        : return : なし
-        """
-        st.title("Welcome to Hit&Blow World!")
-        st.subheader("1:1の数当てゲームで対戦だ！")
-        st.markdown("**_524160_**通りから相手の数字を当ててレベルアップしよう！")
-        if 'game_count' not in st.session_state:
-            st.session_state.game_count = 0
-        if 'exp' not in st.session_state:
-            st.session_state.exp = 0
-        if 'level' not in st.session_state:
-            st.session_state.level = 1
-        if 'win_in_a_row' not in st.session_state:
-            st.session_state.win_in_a_row = 0
-        if st.session_state.level <=20:
-            image = Image.open('picture.jpg')
-            st.image(image)
-        else:
-            image = Image.open('picture_scene.jpg')
-            st.image(image)
 
 
     def _get_your_num(self) -> str :
@@ -68,17 +77,19 @@ class Playgame_solo:
 
 
     def _play_game_manual(self) -> None:
-        while True:
-            print("{}回目, 残りの入力回数は{}回です".format(self.count+1, 30-self.count))
-            self.num = self._get_your_num()
+        print("{}回目, 残りの入力回数は{}回です".format(self.count+1, 30-self.count))
+        st.write("{}回目の入力だ！".format(self.count))
+        self.num = st.text_input("予想する数字を入力してね")
+        if st.button("入力出来たらボタンを押してね"):
             self.history.append(self.num)
             self.count += 1
             self._check_hit_blow(self.num,self.ans)
-            print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+        print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+        st.write("{} Hit, {} Blowだ！".format(self.hit,self.blow))
 
-            if self.hit == self.digits:
-                print("!! 正解です !!")
-                break
+        if self.hit == self.digits:
+            print("!! 正解です !!")
+            st.write("正解だ！")
 
 
     def _check_hit_blow(self,num,ans) -> None:
@@ -240,27 +251,41 @@ class Playgame_solo:
         : return : なし
         """
         new_exp,remaining_exp,level_up,evolution = self._get_experience()
-        st.subheader("勝利だ,おめでとう！正解は‥【{}】！".format(self.num))
-        st.subheader("{}回で正解できた！".format(self.count))
-        left,right = st.columns(2)
+        col6.subheader("")
+        col6.subheader("勝利だ,おめでとう！")
+        col6.subheader("正解は‥【{}】{}回で正解できた！".format(self.num,self.count))
+        col6.subheader("")
         if st.session_state.win_in_a_row >= 2:
-            left.write("すごいぞ,{}連勝だ！この調子！".format(st.session_state.win_in_a_row))
-            # time.sleep(1)
+            col6.subheader("すごいぞ,{}連勝だ！その調子！".format(st.session_state.win_in_a_row))
+        # time.sleep(3)
         st.balloons()
-        left.write("君は{}経験値を得た！".format(new_exp,st))
-        left.write("対戦回数 : {}".format(st.session_state.game_count))
+        col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
+        col6.write("")
         if level_up:
-            right.write('<span style="color:red;background:black">レベルアップだ！</span>',unsafe_allow_html=True)
-        if evolution:
-            right.write('<span style="color:green;background:black">やったね,進化した！</span>',unsafe_allow_html=True)
-        right.write("君の現在のレベル : {}".format(st.session_state.level))
-        right.write("次のレベルまでの経験値：{}".format(remaining_exp))
-        right.write("今まで得た合計経験値：{}".format(st.session_state.exp))
+            if evolution:
+                col6.subheader("やったね, 進化した！")
+                img = Image.open('picture/evolution.gif')
+                time.sleep(1)
+                col6.image(img)
+            else:
+                col6.subheader("レベルアップだ！")
+                img = Image.open('picture/level-up.gif')
+                time.sleep(1)
+                col6.image(img)
+        col6.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
+        col6.write("次のレベルまでの経験値：{}".format(remaining_exp))
+        col6.write("今まで得た合計経験値：{}".format(st.session_state.exp))
+        col6.subheader("")
+        col6.write("対戦回数 : {}".format(st.session_state.game_count))
+
 
     def _play_game_auto(self) -> None:
         self._first_2_times()
         self._make_list_possible_ans_combination()
         self._identify_number()
+        self._show_result_vscode()
+        self._show_result_streamlit()
+
 
     def run(self, mode="auto") -> None:
         """ 数当てゲーム実行ランナー
@@ -272,9 +297,6 @@ class Playgame_solo:
             self._play_game_auto()
         else:
             self._play_game_manual()
-
-        self._show_result_vscode()
-        self._show_result_streamlit()
 
 
 def get_parser() -> argparse.Namespace:
@@ -300,8 +322,8 @@ def main() -> None:
     else:
         runner = Playgame_solo()
 
-    runner.initialize_streamlit()
-    if st.button("クリックすると対戦が始まるよ!"):
+    initialize_streamlit()
+    if col6.button("クリックすると対戦が始まるよ!"):
         # time.sleep(1)
         runner.run(mode=mode)
 

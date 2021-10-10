@@ -8,6 +8,7 @@ Created by Hayato Mori, Kaito Isshiki, Chao Wang
 import argparse
 import time
 import streamlit as st
+st.set_page_config(layout="wide")
 from F2_class_play_game import Playgame,initialize_streamlit
 
 def get_parser() -> argparse.Namespace:
@@ -19,7 +20,6 @@ def get_parser() -> argparse.Namespace:
     parser.add_argument("--ans",default=None)
     parser.add_argument("--mode",default="auto")
     # parser.add_argument("--roomid",default="6056")
-
     args = parser.parse_args()
     return args
 
@@ -28,7 +28,7 @@ def main() -> None:
     web画面だけ表示しておいて, ボタンを押すと部屋作成ー自動対戦が始まる
     """
     initialize_streamlit()
-    room_id = st.number_input('部屋番号を入力してね',min_value=6100)
+    room_id = st.session_state.col2.number_input('部屋番号を入力してね',min_value=6200)
 
     args = get_parser()
     mode = args.mode
@@ -38,9 +38,10 @@ def main() -> None:
         runner = Playgame(ans=ans,room_id=room_id)
     else:
         runner = Playgame(room_id=room_id)
+    runner._waiting_song(num = -1, playtime = None)
 
-    if st.button("クリックすると部屋を作成して対戦を始めるよ"):
-        time.sleep(3)
+    if st.session_state.col2.button("クリックすると部屋を作成して対戦を始めるよ"):
+        time.sleep(1)
         runner.run(mode=mode)
 
 if __name__ == "__main__":
