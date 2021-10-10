@@ -38,8 +38,8 @@ def initialize_streamlit() ->None:
         st.session_state.win_in_a_row = 0
     name = st.session_state.col4.selectbox("キャラクターを選んでね",["ジャック","クリス","フローラ","ドロシー"])
     st.session_state.chara_name = name
-    pic_url1 = "picture/"+name+"-1.jpg"
-    pic_url2 = "picture/"+name+"-2.jpg"
+    pic_url1 = "hitblow/picture/"+name+"-1.jpg"
+    pic_url2 = "hitblow/picture/"+name+"-2.jpg"
     if st.session_state.level < 20:
         image = Image.open(pic_url1)
         st.session_state.col4.image(image)
@@ -118,80 +118,6 @@ class Playgame():
         ans = "".join(ans_list)
         return ans
 
-
-    def _waiting_song(self,num:int,playtime:int=None) -> None:
-        """待機時間中音楽再生
-        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
-        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
-        """
-        pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("bgm/waiting.wav")     # 音楽ファイルの読み込み
-        pygame.mixer.music.set_volume(self.volume)
-        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
-        #time.sleep(playtime)                         # 音楽の再生時間
-
-    def _game_start_song(self,num:int,playtime:int=None) -> None:
-        """ゲーム開始時音楽再生
-        :param int num:再生回数(1回しか再生しないので1でok)
-        :param int playtime:再生時間(デフォルト値Noneで良い)
-        """
-        pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("bgm/game_start.wav")     # 音楽ファイルの読み込み
-        pygame.mixer.music.set_volume(self.volume)
-        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
-        #time.sleep(playtime)                         # 音楽の再生時間
-
-
-    def _battle_song(self,num:int,playtime:int=None) -> None:
-        """戦闘中音楽再生
-        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
-        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
-        """
-        pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("bgm/Battle.wav")     # 音楽ファイルの読み込み
-        pygame.mixer.music.set_volume(self.volume)
-        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
-        #time.sleep(playtime)                         # 音楽の再生時間
-
-    def _winner_song(self,num:int,playtime:int=None) -> None:
-        """勝利したときの音楽再生
-        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
-        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
-        """
-        pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("bgm/winner.wav")     # 音楽ファイルの読み込み
-        pygame.mixer.music.set_volume(self.volume)
-        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
-        #time.sleep(playtime)                         # 音楽の再生時間
-
-    def _loser_song(self,num:int,playtime:int=None) -> None:
-        """敗北したときの音楽再生
-        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
-        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
-        """
-        pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("bgm/loser.wav")     # 音楽ファイルの読み込み
-        pygame.mixer.music.set_volume(self.volume)
-        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
-        #time.sleep(playtime)                         # 音楽の再生時間
-
-    def _level_up_song(self,num:int,playtime:int=None) -> None:
-        """レベルアップ時の音楽再生
-        :param int num:再生回数(基本1回しか流さないので1)
-        :param int playtime:再生時間(デフォルト値Noneで良い)
-        """
-        pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("bgm/level_up.wav")     # 音楽ファイルの読み込み
-        pygame.mixer.music.set_volume(self.volume)
-        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
-        #time.sleep(playtime)                         # 音楽の再生時間
-
-    def _music_stop(self) -> None:
-        """再生中の音楽停止
-        """
-        pygame.mixer.music.stop()               # 再生の終了
-
-
     def _get_table_by_API(self):
         """APIを用いてサーバーから部屋の状態,ターン,履歴を取得(ループで何回も使用)
         : rtype : None
@@ -230,10 +156,6 @@ class Playgame():
             data = result.json()
             self.room_state = data["state"]
             time.sleep(3)
-        self._music_stop()
-        self._game_start_song(num = 1,playtime = None)
-        time.sleep(3)
-        self._battle_song(num = -1,playtime = None)
         self.opponent_name = data["player2"] if data["player1"] == "F" else data["player1"]
         self.now_player = data["player1"]
 
@@ -562,7 +484,6 @@ class Playgame():
         time.sleep(3)
         st.session_state.col6.subheader("")
         if self.winner == self.player_name:
-            self._winner_song(num = 1, playtime = 50)
             st.session_state.col6.subheader("勝利だ,おめでとう！")
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
             st.session_state.col6.subheader("{}回で正解できた！".format(self.count))
@@ -575,7 +496,6 @@ class Playgame():
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
             st.session_state.col6.subheader("{}回で正解した！".format(self.count))
         else:
-            self._loser_song(num = 1, playtime = 50)
             st.session_state.col6.subheader("負けてしまった・・・次は勝とう！")
 
         st.session_state.col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
@@ -583,16 +503,15 @@ class Playgame():
         time.sleep(10)
 
         if level_up:
-            self._music_stop()
             if evolution:
                 st.session_state.col6.subheader("やったね, 進化した！")
-                img = Image.open('picture/evolution.gif')
+                img = Image.open('hitblow/picture/evolution.gif')
                 time.sleep(1)
                 st.session_state.col6.image(img)
             else:
                 st.session_state.col6.subheader("レベルアップだ！")
                 self._level_up_song(num = 1,playtime = None)
-                img = Image.open('picture/level-up.gif')
+                img = Image.open('hitblow/picture/level-up.gif')
                 time.sleep(1)
                 st.session_state.col6.image(img)
 
