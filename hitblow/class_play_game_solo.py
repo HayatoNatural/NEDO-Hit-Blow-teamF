@@ -4,6 +4,7 @@ import argparse
 import time
 from PIL import Image
 import streamlit as st
+import pygame
 st.set_page_config(layout="wide")
 col1,col2 =st.columns([8,2])
 col4,space,col6 =st.columns([7,1,4])
@@ -37,6 +38,7 @@ def initialize_streamlit() ->None:
     else:
         image = Image.open(pic_url2)
         col4.image(image)
+    return image
 
 class Playgame_solo:
 
@@ -51,11 +53,27 @@ class Playgame_solo:
         self.list_possible_ans_combination = []
         self.list_ans_combination = []
         self.list_possible_ans = []
+        self.volume = 0.3
         if ans is not None:
             self.ans = ans
         else:
             self.ans = self._define_answer()
         self.num = None
+
+    def _play_song(self,num:int, title):
+        """待機時間中音楽再生
+        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
+        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load(title)     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+
+    def _music_stop(self) -> None:
+        """再生中の音楽停止
+        """
+        pygame.mixer.music.stop()               # 再生の終了
 
     def _define_answer(self) -> str:
         ans_list = random.sample(self.Tuple_16, self.digits)
@@ -251,24 +269,38 @@ class Playgame_solo:
         : return : なし
         """
         new_exp,remaining_exp,level_up,evolution = self._get_experience()
+        self._music_stop()
+        self._play_song(num = -1, title = "bgm/winner.wav")
         col6.subheader("")
         col6.subheader("勝利だ,おめでとう！")
         col6.subheader("正解は‥【{}】{}回で正解できた！".format(self.num,self.count))
         col6.subheader("")
         if st.session_state.win_in_a_row >= 2:
             col6.subheader("すごいぞ,{}連勝だ！その調子！".format(st.session_state.win_in_a_row))
-        # time.sleep(3)
+        time.sleep(3)
         st.balloons()
         col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
         col6.write("")
+        time.sleep(10)
         if level_up:
             if evolution:
-                col6.subheader("やったね, 進化した！")
+                col4.subheader("おや?{}の様子が...".format(st.session_state.chara_name))
+                image_light = Image.open('picture/evolution_light.png')
+                col4.image(image_light)
+                self._play_song(num = 1,title = "bgm/evolution_light.mp3")
+                time.sleep(3)
+                col4.subheader("やったね, 進化した！")
+                pic_url2 = "picture/"+st.session_state.chara_name+"-2.jpg"
+                image = Image.open(pic_url2)
+                col4.image(image)
                 img = Image.open('picture/evolution.gif')
-                time.sleep(1)
                 col6.image(img)
+                self._play_song(num = 1,title = "bgm/evolution.mp3")
+                time.sleep(3)
             else:
                 col6.subheader("レベルアップだ！")
+                self._music_stop()
+                self._play_song(num = 1,title = "bgm/level_up.wav")
                 img = Image.open('picture/level-up.gif')
                 time.sleep(1)
                 col6.image(img)
@@ -280,6 +312,10 @@ class Playgame_solo:
 
 
     def _play_game_auto(self) -> None:
+        self._music_stop()
+        self._play_song(num = 1,title = "bgm/game_start.wav")
+        time.sleep(3)
+        self._play_song(num = -1,title = "bgm/Battle.wav")
         self._first_2_times()
         self._make_list_possible_ans_combination()
         self._identify_number()
@@ -321,6 +357,7 @@ def main() -> None:
         runner = Playgame_solo(ans=ans)
     else:
         runner = Playgame_solo()
+    runner._play_song(num = -1,title = 'bgm/waiting.wav')
 
     initialize_streamlit()
     if col6.button("クリックすると対戦が始まるよ!"):
