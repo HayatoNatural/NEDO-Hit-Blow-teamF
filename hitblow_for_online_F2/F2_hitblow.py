@@ -38,7 +38,6 @@ def main() -> None:
         runner = Playgame(ans=ans,room_id=room_id)
     else:
         runner = Playgame(room_id=room_id)
-    runner._waiting_song(num = -1, playtime = None)
 
     if st.session_state.col2.button("クリックすると部屋を作成して対戦を始めるよ"):
         time.sleep(1)
