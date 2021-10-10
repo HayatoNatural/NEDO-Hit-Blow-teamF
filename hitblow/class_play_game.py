@@ -10,6 +10,7 @@ import time
 import itertools
 import streamlit as st
 import requests
+# st.set_page_config(layout="wide")
 import pygame
 from PIL import Image
 session = requests.Session()
@@ -20,11 +21,13 @@ def initialize_streamlit() ->None:
     : rtype : None
     : return : なし
     """
-    st.title("Welcome to Hit&Blow World!")
-    st.subheader("ここは, 1:1の数当てゲームで勝負する世界.")
-    st.subheader("524160通りから, 相手の数字を当てて強くなろう！")
-    image = Image.open('hitblow/picture.jpg')
-    st.image(image)
+    st.session_state.col1,st.session_state.col2 = st.columns([6,4])
+    st.session_state.col4,st.session_state.space,st.session_state.col6 = st.columns([7,1,4])
+
+    st.session_state.col1.title("Welcome to Hit&Blow World!")
+    st.session_state.col1.subheader("16進数5桁の相手の数字を当ててレベルアップだ！")
+    st.session_state.col1.subheader("当てるまでの回数や連勝数に応じて経験値が増えるぞ！")
+    # st.markdown("**_524160_**通りから相手の数字を当ててレベルアップしよう！")
     if 'game_count' not in st.session_state:
         st.session_state.game_count = 0
     if 'exp' not in st.session_state:
@@ -33,24 +36,23 @@ def initialize_streamlit() ->None:
         st.session_state.level = 1
     if 'win_in_a_row' not in st.session_state:
         st.session_state.win_in_a_row = 0
-
-def _waiting(num:int,playtime:int=None) -> None:
-        """待機時間中音楽再生
-        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
-        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
-        """
-        pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("hitblow/waiting.wav")     # 音楽ファイルの読み込み
-        pygame.mixer.music.set_volume(0.3)
-        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
-        #time.sleep(playtime)                         # 音楽の再生時間
+    name = st.session_state.col4.selectbox("キャラクターを選んでね",["ジャック","クリス","フローラ","ドロシー"])
+    st.session_state.chara_name = name
+    pic_url1 = "picture/"+name+"-1.jpg"
+    pic_url2 = "picture/"+name+"-2.jpg"
+    if st.session_state.level < 20:
+        image = Image.open(pic_url1)
+        st.session_state.col4.image(image)
+    else:
+        image = Image.open(pic_url2)
+        st.session_state.col4.image(image)
 
 class Playgame():
     """16進数5桁のHit&Blow
     手入力で遊ぶモード, 自動探索で遊ぶモード(今後実装)
 
     :param int digits : 数の桁数
-    :param set set_16 : 数に使う16進数の数字の集合
+    :param set Tuple_16 : 数に使う16進数の数字の集合
     :param str ans : 自分の答え(相手に当ててもらう数字)
     :param str self.url : API使用の時のURLの共通部分
     :param str room_id : room id(6000~6999)
@@ -79,7 +81,7 @@ class Playgame():
         : return : なし
         """
         self.digits = 5
-        self.set_16 = {"0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f"}
+        self.Tuple_16 = ("0","1","2","3","4","5","6","7","8","9","a","b","c","d","e","f")
         if ans is not None:
             self.ans = ans
         else:
@@ -107,13 +109,23 @@ class Playgame():
         self.volume = 0.3
         self.remaining_exp_level = 0
 
+    def _define_hidden_number_random(self) -> str:
+        """相手に当ててもらう答えをつくる
+        : rtype : str
+        : return : ans
+        """
+        ans_list = random.sample(self.Tuple_16, self.digits)
+        ans = "".join(ans_list)
+        return ans
+
+
     def _waiting_song(self,num:int,playtime:int=None) -> None:
         """待機時間中音楽再生
         :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
         :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
         """
         pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("hitblow/waiting.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.load("bgm/waiting.wav")     # 音楽ファイルの読み込み
         pygame.mixer.music.set_volume(self.volume)
         pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
         #time.sleep(playtime)                         # 音楽の再生時間
@@ -124,7 +136,7 @@ class Playgame():
         :param int playtime:再生時間(デフォルト値Noneで良い)
         """
         pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("hitblow/game_start.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.load("bgm/game_start.wav")     # 音楽ファイルの読み込み
         pygame.mixer.music.set_volume(self.volume)
         pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
         #time.sleep(playtime)                         # 音楽の再生時間
@@ -136,7 +148,7 @@ class Playgame():
         :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
         """
         pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("hitblow/Battle.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.load("bgm/Battle.wav")     # 音楽ファイルの読み込み
         pygame.mixer.music.set_volume(self.volume)
         pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
         #time.sleep(playtime)                         # 音楽の再生時間
@@ -147,7 +159,7 @@ class Playgame():
         :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
         """
         pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("hitblow/winner.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.load("bgm/winner.wav")     # 音楽ファイルの読み込み
         pygame.mixer.music.set_volume(self.volume)
         pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
         #time.sleep(playtime)                         # 音楽の再生時間
@@ -158,7 +170,7 @@ class Playgame():
         :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
         """
         pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("hitblow/loser.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.load("bgm/loser.wav")     # 音楽ファイルの読み込み
         pygame.mixer.music.set_volume(self.volume)
         pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
         #time.sleep(playtime)                         # 音楽の再生時間
@@ -169,7 +181,7 @@ class Playgame():
         :param int playtime:再生時間(デフォルト値Noneで良い)
         """
         pygame.mixer.init()    # 初期設定
-        pygame.mixer.music.load("hitblow\level_up.wav")     # 音楽ファイルの読み込み
+        pygame.mixer.music.load("bgm/level_up.wav")     # 音楽ファイルの読み込み
         pygame.mixer.music.set_volume(self.volume)
         pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
         #time.sleep(playtime)                         # 音楽の再生時間
@@ -179,14 +191,27 @@ class Playgame():
         """
         pygame.mixer.music.stop()               # 再生の終了
 
-    def _define_hidden_number_random(self) -> str:
-        """相手に当ててもらう答えをつくる
-        : rtype : str
-        : return : ans
+
+    def _get_table_by_API(self):
+        """APIを用いてサーバーから部屋の状態,ターン,履歴を取得(ループで何回も使用)
+        : rtype : None
+        : return : なし
         """
-        ans_list = random.sample(self.set_16, self.digits)
-        ans = "".join(ans_list)
-        return ans
+        url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
+        result = session.get(url_get_table)
+        data = result.json()
+        self.room_state = data["state"]
+        self.now_player = data["now_player"]
+        self.my_history = data["table"]
+
+    def _post_guess_by_API(self):
+        """APIを用いてサーバーに予想した相手の数字(self.num)をポスト
+        : rtype : None
+        : return : なし
+        """
+        url_post_guess = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table/guesses"
+        post_data = {"player_id": self.player_id_F, "guess": self.num}
+        session.post(url_post_guess, headers=self.headers, json=post_data)
 
 
     def _enterroom_and_registerplayer(self):
@@ -222,27 +247,6 @@ class Playgame():
         post_data = {"player_id":self.player_id_F, "hidden_number":self.ans}
         session.post(url_post_hidden_number,headers=self.headers,json=post_data)
 
-
-    def _get_table_by_API(self):
-        """APIを用いてサーバーから部屋の状態,ターン,履歴を取得(ループで何回も使用)
-        : rtype : None
-        : return : なし
-        """
-        url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
-        result = session.get(url_get_table)
-        data = result.json()
-        self.room_state = data["state"]
-        self.now_player = data["now_player"]
-        self.my_history = data["table"]
-
-    def _post_guess_by_API(self):
-        """APIを用いてサーバーに予想した相手の数字(self.num)をポスト
-        : rtype : None
-        : return : なし
-        """
-        url_post_guess = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table/guesses"
-        post_data = {"player_id": self.player_id_F, "guess": self.num}
-        session.post(url_post_guess, headers=self.headers, json=post_data)
 
 
     def _play_game_manual(self) -> None:
@@ -281,7 +285,7 @@ class Playgame():
             num = input("16進数で5桁の重複しない数字を入力してください ==> ")
             judge = True
             for i in num:
-                if i not in self.set_16:
+                if i not in self.Tuple_16:
                     judge = False
             if judge == True and len(num) == self.digits and len(set(num)) == self.digits:
                 return num
@@ -289,10 +293,10 @@ class Playgame():
                 print("もう一度入力しなおしてください(16進数, 5桁, 重複なし)")
 
 
-    def _first_three_times(self) -> None:
+    def _first_2_times(self) -> None:
         """自動数当てモードで最初に行う, 答えとなる数字がどのグループに何個あるのか特定
         1秒ごとにget_tableで状態を確認し,
-        対戦続行中で,自分のターンのとき, 1,2,3回目に01234,56789,abcdeを選んでself.numに格納
+        対戦続行中で,自分のターンのとき, 1,2回目に01234,56789を選んでself.numに格納
         post_guessし, 帰ってきたhit,blowの和をlist_ans_numに格納
         remove_impossible_combinationを行う
         自分のターンで無かったら, 1秒待機
@@ -300,10 +304,10 @@ class Playgame():
         : rtype : None
         : return : なし
         """
-        search_list = ["01234","56789","abcde"]
+        search_list = ["01234","56789"]
         while True:
             self._get_table_by_API()
-            if self.room_state == 2 and self.now_player == self.player_name and self.count != 3:
+            if self.room_state == 2 and self.now_player == self.player_name and self.count != 2:
                 print("{}回目の入力です.".format(self.count+1))
                 self.num = search_list[self.count]
                 self.count += 1
@@ -314,12 +318,10 @@ class Playgame():
                 self.list_num_place.append(self.hit + self.blow)
                 print("-----",self.num)
                 print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
-            if self.count == 3:
-                break
-            if self.room_state == 3:
+            if self.count == 2 or self.room_state == 3:
                 break
             else:
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
 
 
@@ -332,10 +334,9 @@ class Playgame():
         """
         for i in itertools.combinations("01234", self.list_num_place[0]):
             for j in itertools.combinations("56789", self.list_num_place[1]):
-                for k in itertools.combinations("abcde", self.list_num_place[2]):
-                    for l in itertools.combinations("f", self.digits-sum(self.list_num_place)):
-                        n = "".join(i+j+k+l)
-                        self.list_possible_ans_combination.append(n)
+                for k in itertools.combinations("abcdef", self.digits-sum(self.list_num_place)):
+                    n = "".join(i+j+k)
+                    self.list_possible_ans_combination.append(n)
 
 
     def _remove_impossible_combination(self):
@@ -424,7 +425,7 @@ class Playgame():
             if self.room_state == 3 :
                 break
             else:
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
 
 
@@ -454,18 +455,8 @@ class Playgame():
             if self.room_state == 3 :
                 break
             else:
-                time.sleep(1)
+                time.sleep(0.5)
                 continue
-
-
-    def _play_game_auto(self) -> None:
-        """自動数当てモード
-        : rtype : None
-        : return : なし
-        """
-        self._first_three_times()
-        self._make_list_possible_ans_combination()
-        self._identify_number()
 
 
     def run(self, mode="auto") -> None:
@@ -475,14 +466,20 @@ class Playgame():
         : rtype : None
         : return : なし
         """
-        place = st.empty()
+        st.session_state.col2.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
+        st.session_state.col2.write("対戦回数 : {}".format(st.session_state.game_count))
+        place = st.session_state.col6.empty()
         place.write("対戦中・・・")
         self._enterroom_and_registerplayer()
         self._post_hidden_number()
+
         if mode == "auto":
-            self._play_game_auto()
+            self._first_2_times()
+            self._make_list_possible_ans_combination()
+            self._identify_number()
         else:
             self._play_game_manual()
+
         place.write("対戦終了！")
         self._music_stop()
         self._show_result_vscode()
@@ -494,7 +491,6 @@ class Playgame():
         : rtype : None
         : return : なし
         """
-        time.sleep(3)
         print("--------------------")
         print("対戦終了です.")
         url_get_table = self.url + "/rooms/" + str(self.room_id) + "/players/" + self.player_name + "/table"
@@ -516,7 +512,7 @@ class Playgame():
         print("終了ターンの解答 : {}".format(self.num))
         print("------------------------")
 
-    def _get_experience(self) -> str:
+    def _get_information(self) -> str:
         """対戦終了後,web画面に表示する内容を計算
         勝敗,連勝に応じて獲得経験値を求め, 経験値に加える.レベルや次のレベルまでの必要経験値も求める
         : rtype : str
@@ -534,14 +530,27 @@ class Playgame():
 
         st.session_state.game_count += 1
         st.session_state.exp += new_exp
+        level_up = False
+        evolution = False
         for i in range(200):
             if i**3/3 <= st.session_state.exp and st.session_state.exp < (i+1)**3/3:
-                st.session_state.level = i
                 remaining_exp = round((i+1)**3/3 - st.session_state.exp)
+                new_level = i
+                if new_level != st.session_state.level:
+                    level_up = True
+                    if new_level == 20:
+                        evolution = True
+                st.session_state.level = new_level
                 break
-            elif i**3/3 >=st.session_state.exp and st.session_state.exp >(i-1)**3/3:
-                self.remaining_exp_level = round((i)**3/3 - st.session_state.exp)
-        return new_exp,remaining_exp
+        return new_exp,remaining_exp,level_up,evolution
+        # for i in range(200):
+        #     if i**3/3 <= st.session_state.exp and st.session_state.exp < (i+1)**3/3:
+        #         st.session_state.level = i
+        #         remaining_exp = round((i+1)**3/3 - st.session_state.exp)
+        #         break
+        #     elif i**3/3 >=st.session_state.exp and st.session_state.exp >(i-1)**3/3:
+        #         self.remaining_exp_level = round((i)**3/3 - st.session_state.exp)
+        # return new_exp,remaining_exp
 
     def _show_result_streamlit(self) -> None:
         """対戦終了後, お互いの結果を表示(web画面上に表示する分)
@@ -549,28 +558,45 @@ class Playgame():
         : rtype : None
         : return : なし
         """
-        new_exp,remaining_exp = self._get_experience()
-        st.write("君は{}経験値を得た！今まで得た合計経験値は{}だ！".format(new_exp,st.session_state.exp))
-        if self.remaining_exp_level <= new_exp:
-            self._level_up_song(num = 1,playtime = None)
-            img = Image.open('hitblow\level-up.gif')
-            st.image(img)
-            time.sleep(3)
-            
+        new_exp,remaining_exp,level_up,evolution = self._get_information()
+        time.sleep(3)
+        st.session_state.col6.subheader("")
         if self.winner == self.player_name:
             self._winner_song(num = 1, playtime = 50)
-            st.subheader("勝利だ,おめでとう！正解は‥【{}】！ {}回で正解できた！".format(self.num,self.count))
+            st.session_state.col6.subheader("勝利だ,おめでとう！")
+            st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
+            st.session_state.col6.subheader("{}回で正解できた！".format(self.count))
+            st.session_state.col6.subheader("")
             if st.session_state.win_in_a_row >= 2:
-                st.write("すごいぞ,{}連勝だ！この調子！".format(st.session_state.win_in_a_row))
-            time.sleep(1)
+                st.session_state.col6.subheader("すごいぞ,{}連勝だ！この調子！".format(st.session_state.win_in_a_row))
             st.balloons()
         elif self.winner == None:
-            st.subheader("引き分けだ！正解は‥【{}】！ {}回で正解した！".format(self.num,self.count))
+            st.session_state.col6.subheader("引き分けだ！ ")
+            st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
+            st.session_state.col6.subheader("{}回で正解した！".format(self.count))
         else:
             self._loser_song(num = 1, playtime = 50)
-            st.subheader("負けてしまった・・・次は勝とう！")
+            st.session_state.col6.subheader("負けてしまった・・・次は勝とう！")
 
-        st.write("君の現在のレベル : {}, 次のレベルまであと{}経験値だ！".format(st.session_state.level,remaining_exp))
-        st.write("対戦回数 : {}".format(st.session_state.game_count))
+        st.session_state.col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
+        st.session_state.col6.write("")
+        time.sleep(10)
 
+        if level_up:
+            self._music_stop()
+            if evolution:
+                st.session_state.col6.subheader("やったね, 進化した！")
+                img = Image.open('picture/evolution.gif')
+                time.sleep(1)
+                st.session_state.col6.image(img)
+            else:
+                st.session_state.col6.subheader("レベルアップだ！")
+                self._level_up_song(num = 1,playtime = None)
+                img = Image.open('picture/level-up.gif')
+                time.sleep(1)
+                st.session_state.col6.image(img)
 
+        time.sleep(1)
+        st.session_state.col6.write("次のレベルまでの経験値：{}".format(remaining_exp))
+        st.session_state.col6.write("今まで得た合計経験値：{}".format(st.session_state.exp))
+        st.session_state.col6.subheader("")
