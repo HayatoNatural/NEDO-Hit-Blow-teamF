@@ -3,13 +3,13 @@
 ====
 hitblowの
 
-hitblow.py - web上での通信対戦(パーサーでroom_id,mode,ansを指定可能), 実行は streamlit run hitblow.py
+hitblow_100times_auto.py - ターミナル上での100回自動通信対戦(パーサーでroom_id,ansを指定可能)
 
-hitblow_100times_auto.py - ターミナル上での100回自動通信対戦(パーサーでroom_id,mode,ansを指定可能)
+hitblow.py - web上での自動通信対戦(パーサーでansを指定可能), 実行は streamlit run hitblow.py
 
-hitblow_solo.py - web上での一人でのcom対戦(パーサーでansを指定可能), 実行は streamlit run hitblow_solo.py
+hitblow_solo.py - web上での自動com対戦(パーサーでansを指定可能), 実行は streamlit run hitblow_solo.py
 
-hitblow_manual.py - ターミナル上での一人でのcom対戦(パーサーでmode,ansを指定可能)
+hitblow_solo_manual.py - web上での手動com対戦(パーサーでansを指定可能) 実行は streamlit run hitblow_solo_manual.py
 
 ## 環境
 
