@@ -38,6 +38,9 @@ def initialize_streamlit() ->None:
         st.session_state.win_in_a_row = 0
     name = st.session_state.col4.selectbox("キャラクターを選んでね",["ジャック","クリス","フローラ","ドロシー"])
     st.session_state.chara_name = name
+    pygame.mixer.init()    # 初期設定
+    sound_waiting = pygame.mixer.Sound('voice/'+st.session_state.chara_name+'/waiting.wav')     # 音楽ファイルの読み込み
+    sound_waiting.play()
     pic_url1 = "picture/"+name+"-1.jpg"
     pic_url2 = "picture/"+name+"-2.jpg"
     if st.session_state.level < 20:
@@ -134,6 +137,12 @@ class Playgame():
         """
         pygame.mixer.music.stop()               # 再生の終了
 
+    def _sound_play(self,num:int, title):
+        pygame.mixer.init()    # 初期設定
+        sound = pygame.mixer.Sound(title)     # 音楽ファイルの読み込み
+        sound.set_volume(self.volume)
+        sound.play()
+
 
     def _get_table_by_API(self):
         """APIを用いてサーバーから部屋の状態,ターン,履歴を取得(ループで何回も使用)
@@ -174,6 +183,7 @@ class Playgame():
             self.room_state = data["state"]
             time.sleep(3)
         self._music_stop()
+        self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/game_start.wav')
         self._play_song(num = 1,title = "bgm/game_start.wav")
         time.sleep(3)
         self._play_song(num = -1,title = "bgm/Battle.wav")
@@ -504,6 +514,7 @@ class Playgame():
         time.sleep(3)
         st.session_state.col6.subheader("")
         if self.winner == self.player_name:
+            self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/winner.wav')
             self._play_song(num = -1, title = "bgm/winner.wav")
             st.session_state.col6.subheader("勝利だ,おめでとう！")
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
@@ -513,11 +524,13 @@ class Playgame():
                 st.session_state.col6.subheader("すごいぞ,{}連勝だ！この調子！".format(st.session_state.win_in_a_row))
             st.balloons()
         elif self.winner == None:
+            self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/draw.wav')
             self._play_song(num = -1, title = 'bgm/draw.mp3')
             st.session_state.col6.subheader("引き分けだ！ ")
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
             st.session_state.col6.subheader("{}回で正解した！".format(self.count))
         else:
+            self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/loser.wav')
             self._play_song(num = -1, title = "bgm/loser.wav")
             st.session_state.col6.subheader("負けてしまった・・・次は勝とう！")
 
