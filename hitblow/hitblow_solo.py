@@ -30,6 +30,9 @@ def initialize_streamlit() -> None:
         st.session_state.win_in_a_row = 0
     name = col4.selectbox("キャラクターを選んでね",["ジャック","クリス","フローラ","ドロシー"])
     st.session_state.chara_name = name
+    pygame.mixer.init()    # 初期設定
+    sound_waiting = pygame.mixer.Sound('voice/'+st.session_state.chara_name+'/waiting.wav')     # 音楽ファイルの読み込み
+    sound_waiting.play()
     pic_url1 = "picture/"+name+"-1.jpg"
     pic_url2 = "picture/"+name+"-2.jpg"
     if st.session_state.level < 20:
@@ -74,6 +77,12 @@ class Playgame_solo:
         """再生中の音楽停止
         """
         pygame.mixer.music.stop()               # 再生の終了
+
+    def _sound_play(self,num:int, title):
+        pygame.mixer.init()    # 初期設定
+        sound = pygame.mixer.Sound(title)     # 音楽ファイルの読み込み
+        sound.set_volume(self.volume)
+        sound.play()
 
     def _define_answer(self) -> str:
         ans_list = random.sample(self.Tuple_16, self.digits)
@@ -271,6 +280,7 @@ class Playgame_solo:
         new_exp,remaining_exp,level_up,evolution = self._get_experience()
         self._music_stop()
         self._play_song(num = -1, title = "bgm/winner.wav")
+        self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/winner.wav')
         col6.subheader("")
         col6.subheader("勝利だ,おめでとう！")
         col6.subheader("正解は‥【{}】{}回で正解できた！".format(self.num,self.count))
@@ -318,6 +328,7 @@ class Playgame_solo:
         place = col6.empty()
         place.write("対戦中・・・")
         self._play_song(num = 1,title = "bgm/game_start.wav")
+        self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/game_start.wav')
         time.sleep(3)
         self._play_song(num = -1,title = "bgm/Battle.wav")
         self._first_2_times()
