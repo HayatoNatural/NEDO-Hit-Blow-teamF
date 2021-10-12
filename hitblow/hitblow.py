@@ -2,7 +2,7 @@
 """
 File Name: hitblow.py
 Description: Hit&Blowの実行
-Created on october 7,2021
+Created on october 13,2021
 Created by Hayato Mori, Kaito Isshiki, Chao Wang
 """
 import argparse
@@ -18,8 +18,6 @@ def get_parser() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(description="Hit&Blow, 数当てゲーム")
     parser.add_argument("--ans",default=None)
-    parser.add_argument("--mode",default="auto")
-    # parser.add_argument("--roomid",default="6056")
     args = parser.parse_args()
     return args
 
@@ -31,8 +29,6 @@ def main() -> None:
     room_id = st.session_state.col2.number_input('部屋番号を入力してね',min_value=6200)
 
     args = get_parser()
-    mode = args.mode
-    # room_id = args.roomid
     ans= args.ans
     if args.ans is not None:
         runner = Playgame(ans=ans,room_id=room_id)
@@ -42,7 +38,7 @@ def main() -> None:
 
     if st.session_state.col2.button("クリックすると部屋を作成して対戦を始めるよ"):
         time.sleep(1)
-        runner.run(mode=mode)
+        runner.run()
 
 if __name__ == "__main__":
     main()
