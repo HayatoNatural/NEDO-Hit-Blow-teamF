@@ -16,21 +16,7 @@ st.set_page_config(layout="wide")
 col1,col2 =st.columns([4,1])
 col4,space,col6 =st.columns([7,1,4])
 
-class Playgame_solo_auto:
-    """16進数5桁のHit&Blow　自動一人対戦の数当てモード
-
-    :param int digits : 数の桁数
-    :param set Tuple_16 : 数に使う16進数の数字の集合
-    :param str ans : comの答え(自分が当てる数字)
-    :param List[dict] my_history : 自分が相手の数当をした時の履歴
-    :param imt count : このゲームで何ターンたったか
-    :param str num : こちらが予想した相手の数字
-    :param int hit : 数字のhit数
-    :param int blow : 数字のblow数
-    :param int volume:音量(0～1で変更)
-    """
-<<<<<<< HEAD
-=======
+def initialize_streamlit():
     col1.title("Welcome to Hit&Blow Game！16進数5桁の秘密の数字を当てよう！")
     col1.subheader("対戦すると経験値がもらえるよ. 経験値は当てた回数や連勝数に応じて増えるぞ！")
     col1.subheader("経験値が貯まるとレベルアップだ！いずれはキャラが進化するかも‥？")
@@ -56,10 +42,20 @@ class Playgame_solo_auto:
     else:
         image = Image.open(pic_url2)
         col4.image(image)
-    return image
 
-class Playgame_solo:
->>>>>>> 26a65280c5e63da043a3da88068d3b74502d1b01
+class Playgame_solo_auto:
+    """16進数5桁のHit&Blow　自動一人対戦の数当てモード
+
+    :param int digits : 数の桁数
+    :param set Tuple_16 : 数に使う16進数の数字の集合
+    :param str ans : comの答え(自分が当てる数字)
+    :param List[dict] my_history : 自分が相手の数当をした時の履歴
+    :param imt count : このゲームで何ターンたったか
+    :param str num : こちらが予想した相手の数字
+    :param int hit : 数字のhit数
+    :param int blow : 数字のblow数
+    :param int volume:音量(0～1で変更)
+    """
 
     def __init__(self,ans=None) -> None:
         self.digits = 5
@@ -87,6 +83,7 @@ class Playgame_solo:
         ans_list = random.sample(self.Tuple_16, self.digits)
         ans = "".join(ans_list)
         return ans
+
 
     def initialize_streamlit(self) -> None:
         """クラスを定義する前にweb上で画面を出しておく
@@ -135,60 +132,13 @@ class Playgame_solo:
         """
         pygame.mixer.music.stop()               # 再生の終了
 
-<<<<<<< HEAD
-=======
     def _sound_play(self,num:int, title):
         pygame.mixer.init()    # 初期設定
         sound = pygame.mixer.Sound(title)     # 音楽ファイルの読み込み
         sound.set_volume(self.volume)
         sound.play()
 
-    def _define_answer(self) -> str:
-        ans_list = random.sample(self.Tuple_16, self.digits)
-        ans = "".join(ans_list)
-        return ans
 
-
-    def _get_your_num(self) -> str :
-        while True:
-            num = input("16進数で5桁の重複しない数字を入力してね --> ")
-            judge = True
-            for i in num:
-                if i not in self.Tuple_16:
-                    judge = False
-            if judge == True and len(num) == self.digits and len(set(num)) == self.digits:
-                return num
-            else:
-                print("もう一度入力しなおしてください(16進数, 5桁, 重複なし)")
-
-
-    def _play_game_manual(self) -> None:
-        print("{}回目, 残りの入力回数は{}回です".format(self.count+1, 30-self.count))
-        st.write("{}回目の入力だ！".format(self.count))
-        self.num = st.text_input("予想する数字を入力してね")
-        if st.button("入力出来たらボタンを押してね"):
-            self.history.append(self.num)
-            self.count += 1
-            self._check_hit_blow(self.num,self.ans)
-        print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
-        st.write("{} Hit, {} Blowだ！".format(self.hit,self.blow))
-
-        if self.hit == self.digits:
-            print("!! 正解です !!")
-            st.write("正解だ！")
-
-
-    def _check_hit_blow(self,num,ans) -> None:
-        self.hit = 0
-        self.blow = 0
-        for i in range(self.digits):
-            if num[i] == ans[i]:
-                self.hit += 1
-            else:
-                if num[i] in ans:
-                    self.blow += 1
-
->>>>>>> 26a65280c5e63da043a3da88068d3b74502d1b01
 
     def _first_3_times(self) -> None:
         """進化前, 最初に行う, 答えとなる数字がどのグループに何個あるのか特定
@@ -488,39 +438,7 @@ class Playgame_solo:
         col6.write("対戦回数 : {}".format(st.session_state.game_count))
 
 
-<<<<<<< HEAD
-=======
-    def _play_game_auto(self) -> None:
-        self._music_stop()
-        col6.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
-        col6.write("対戦回数 : {}".format(st.session_state.game_count))
-        place = col6.empty()
-        place.write("対戦中・・・")
-        self._play_song(num = 1,title = "bgm/game_start.wav")
-        self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/game_start.wav')
-        time.sleep(3)
-        self._play_song(num = -1,title = "bgm/Battle.wav")
-        self._first_2_times()
-        self._make_list_possible_ans_combination()
-        self._identify_number()
-        place.write("対戦終了！")
-        self._show_result_vscode()
-        self._show_result_streamlit()
 
-
-    def run(self, mode="auto") -> None:
-        """ 数当てゲーム実行ランナー
-        : param str mode : ゲームの実行モード("manual","linear","binary")
-        : rtype : None
-        : return : なし
-        """
-        if mode == "auto":
-            self._play_game_auto()
-        else:
-            self._play_game_manual()
-
-
->>>>>>> 26a65280c5e63da043a3da88068d3b74502d1b01
 def get_parser() -> argparse.Namespace:
     """コマンドライン引数を解析したものを持つ
     :rtype : argparse.Namespace
