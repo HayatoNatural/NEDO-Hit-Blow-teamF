@@ -21,12 +21,12 @@ def initialize_streamlit() ->None:
     : rtype : None
     : return : なし
     """
-    st.session_state.col1,st.session_state.col2 = st.columns([6,4])
+    st.session_state.col1,st.session_state.col2 = st.columns([7,3])
     st.session_state.col4,st.session_state.space,st.session_state.col6 = st.columns([7,1,4])
 
-    st.session_state.col1.title("Welcome to Hit&Blow World!")
-    st.session_state.col1.subheader("16進数5桁の相手の数字を当ててレベルアップだ！")
-    st.session_state.col1.subheader("当てるまでの回数や連勝数に応じて経験値が増えるぞ！")
+    st.session_state.col1.title("Welcome to Hit&Blow Game！16進数5桁の数字を当てよう！")
+    st.session_state.col1.subheader("対戦すると経験値がもらえるよ. 経験値は当てた回数や連勝数に応じて増えるぞ！")
+    st.session_state.col1.subheader("経験値が貯まるとレベルアップだ！いずれはキャラが進化するかも‥？")
     # st.markdown("**_524160_**通りから相手の数字を当ててレベルアップしよう！")
     if 'game_count' not in st.session_state:
         st.session_state.game_count = 0
@@ -412,10 +412,9 @@ class Playgame():
         st.session_state.col2.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
         st.session_state.col2.write("対戦回数 : {}".format(st.session_state.game_count))
         place = st.session_state.col6.empty()
-        place.write("対戦中・・・")
         self._enterroom_and_registerplayer()
         self._post_hidden_number()
-
+        place.write("対戦中・・・")
         if mode == "auto":
             self._first_2_times()
             self._make_list_possible_ans_combination()
@@ -524,7 +523,7 @@ class Playgame():
 
         st.session_state.col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
         st.session_state.col6.write("")
-        time.sleep(10)
+        time.sleep(13)
 
         if level_up:
             self._music_stop()
@@ -554,3 +553,5 @@ class Playgame():
         st.session_state.col6.write("次のレベルまでの経験値：{}".format(remaining_exp))
         st.session_state.col6.write("今まで得た合計経験値：{}".format(st.session_state.exp))
         st.session_state.col6.subheader("")
+        st.session_state.col6.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
+        st.session_state.col6.write("対戦回数 : {}".format(st.session_state.game_count))
