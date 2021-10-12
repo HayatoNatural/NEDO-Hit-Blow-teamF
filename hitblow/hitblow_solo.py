@@ -6,11 +6,11 @@ from PIL import Image
 import streamlit as st
 import pygame
 st.set_page_config(layout="wide")
-col1,col2 =st.columns([8,2])
+col1,col2 =st.columns([4,1])
 col4,space,col6 =st.columns([7,1,4])
 
 
-def initialize_streamlit() ->None:
+def initialize_streamlit() -> None:
     """クラスを定義する前にweb上で画面を出しておく
     状態量として, 試合数, 経験値, レベル, 連勝数を定義し, 初期化しておく(マジックコマンド的な)
     : rtype : None
@@ -244,7 +244,7 @@ class Playgame_solo:
         : rtype : str
         : return : 獲得経験値と次のレベルまでの必要経験値
         """
-        st.session_state.win_in_a_row += 1
+        # st.session_state.win_in_a_row += 1
         level_up = False
         evolution = False
         new_exp = round(3000*(1+(st.session_state.win_in_a_row-1)/4)/self.count)
@@ -275,13 +275,13 @@ class Playgame_solo:
         col6.subheader("勝利だ,おめでとう！")
         col6.subheader("正解は‥【{}】{}回で正解できた！".format(self.num,self.count))
         col6.subheader("")
-        if st.session_state.win_in_a_row >= 2:
-            col6.subheader("すごいぞ,{}連勝だ！その調子！".format(st.session_state.win_in_a_row))
+        # if st.session_state.win_in_a_row >= 2:
+        #     col6.subheader("すごいぞ,{}連勝だ！その調子！".format(st.session_state.win_in_a_row))
         time.sleep(3)
         st.balloons()
         col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
         col6.write("")
-        time.sleep(10)
+        time.sleep(13)
         if level_up:
             if evolution:
                 col4.subheader("おや?{}の様子が...".format(st.session_state.chara_name))
@@ -304,21 +304,26 @@ class Playgame_solo:
                 img = Image.open('picture/level-up.gif')
                 time.sleep(1)
                 col6.image(img)
-        col6.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
         col6.write("次のレベルまでの経験値：{}".format(remaining_exp))
         col6.write("今まで得た合計経験値：{}".format(st.session_state.exp))
         col6.subheader("")
+        col6.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
         col6.write("対戦回数 : {}".format(st.session_state.game_count))
 
 
     def _play_game_auto(self) -> None:
         self._music_stop()
+        col6.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
+        col6.write("対戦回数 : {}".format(st.session_state.game_count))
+        place = col6.empty()
+        place.write("対戦中・・・")
         self._play_song(num = 1,title = "bgm/game_start.wav")
         time.sleep(3)
         self._play_song(num = -1,title = "bgm/Battle.wav")
         self._first_2_times()
         self._make_list_possible_ans_combination()
         self._identify_number()
+        place.write("対戦終了！")
         self._show_result_vscode()
         self._show_result_streamlit()
 

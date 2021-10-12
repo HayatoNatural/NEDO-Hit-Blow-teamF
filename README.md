@@ -7,7 +7,9 @@ hitblow.py - web上での通信対戦(パーサーでroom_id,mode,ansを指定�
 
 hitblow_100times_auto.py - ターミナル上での100回自動通信対戦(パーサーでroom_id,mode,ansを指定可能)
 
-hitblow_play_solo.py - web上での一人でのcom対戦(パーサーでmode,ansを指定可能), 実行は streamlit run hitblow_play_solo.py
+hitblow_solo.py - web上での一人でのcom対戦(パーサーでansを指定可能), 実行は streamlit run hitblow_solo.py
+
+hitblow_manual.py - ターミナル上での一人でのcom対戦(パーサーでmode,ansを指定可能)
 
 ## 環境
 

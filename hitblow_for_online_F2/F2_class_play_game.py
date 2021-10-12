@@ -21,12 +21,12 @@ def initialize_streamlit() ->None:
     : rtype : None
     : return : なし
     """
-    st.session_state.col1,st.session_state.col2 = st.columns([6,4])
+    st.session_state.col1,st.session_state.col2 = st.columns([7,3])
     st.session_state.col4,st.session_state.space,st.session_state.col6 = st.columns([7,1,4])
 
-    st.session_state.col1.title("Welcome to Hit&Blow World!")
-    st.session_state.col1.subheader("16進数5桁の相手の数字を当ててレベルアップだ！")
-    st.session_state.col1.subheader("当てるまでの回数や連勝数に応じて経験値が増えるぞ！")
+    st.session_state.col1.title("Welcome to Hit&Blow Game！16進数5桁の数字を当てよう！")
+    st.session_state.col1.subheader("対戦すると経験値がもらえるよ. 経験値は当てた回数や連勝数に応じて増えるぞ！")
+    st.session_state.col1.subheader("経験値が貯まるとレベルアップだ！いずれはキャラが進化するかも‥？")
     # st.markdown("**_524160_**通りから相手の数字を当ててレベルアップしよう！")
     if 'game_count' not in st.session_state:
         st.session_state.game_count = 0
@@ -38,8 +38,8 @@ def initialize_streamlit() ->None:
         st.session_state.win_in_a_row = 0
     name = st.session_state.col4.selectbox("キャラクターを選んでね",["ジャック","クリス","フローラ","ドロシー"])
     st.session_state.chara_name = name
-    pic_url1 = "hitblow/picture/"+name+"-1.jpg"
-    pic_url2 = "hitblow/picture/"+name+"-2.jpg"
+    pic_url1 = "picture/"+name+"-1.jpg"
+    pic_url2 = "picture/"+name+"-2.jpg"
     if st.session_state.level < 20:
         image = Image.open(pic_url1)
         st.session_state.col4.image(image)
@@ -118,6 +118,23 @@ class Playgame():
         ans = "".join(ans_list)
         return ans
 
+    def _play_song(self,num:int, title):
+        """音楽再生
+        :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
+        :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
+        :param str title:bgmフォルダ内にあるmp3ファイルを再生
+        """
+        pygame.mixer.init()    # 初期設定
+        pygame.mixer.music.load(title)     # 音楽ファイルの読み込み
+        pygame.mixer.music.set_volume(self.volume)
+        pygame.mixer.music.play(num)              # 音楽の再生回数(1回)
+
+    def _music_stop(self) -> None:
+        """再生中の音楽停止
+        """
+        pygame.mixer.music.stop()               # 再生の終了
+
+
     def _get_table_by_API(self):
         """APIを用いてサーバーから部屋の状態,ターン,履歴を取得(ループで何回も使用)
         : rtype : None
@@ -156,6 +173,10 @@ class Playgame():
             data = result.json()
             self.room_state = data["state"]
             time.sleep(3)
+        self._music_stop()
+        self._play_song(num = 1,title = "bgm/game_start.wav")
+        time.sleep(3)
+        self._play_song(num = -1,title = "bgm/Battle.wav")
         self.opponent_name = data["player2"] if data["player1"] == "F" else data["player1"]
         self.now_player = data["player1"]
 
@@ -391,10 +412,9 @@ class Playgame():
         st.session_state.col2.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
         st.session_state.col2.write("対戦回数 : {}".format(st.session_state.game_count))
         place = st.session_state.col6.empty()
-        place.write("対戦中・・・")
         self._enterroom_and_registerplayer()
         self._post_hidden_number()
-
+        place.write("対戦中・・・")
         if mode == "auto":
             self._first_2_times()
             self._make_list_possible_ans_combination()
@@ -484,6 +504,7 @@ class Playgame():
         time.sleep(3)
         st.session_state.col6.subheader("")
         if self.winner == self.player_name:
+            self._play_song(num = -1, title = "bgm/winner.wav")
             st.session_state.col6.subheader("勝利だ,おめでとう！")
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
             st.session_state.col6.subheader("{}回で正解できた！".format(self.count))
@@ -492,26 +513,39 @@ class Playgame():
                 st.session_state.col6.subheader("すごいぞ,{}連勝だ！この調子！".format(st.session_state.win_in_a_row))
             st.balloons()
         elif self.winner == None:
+            self._play_song(num = -1, title = 'bgm/draw.mp3')
             st.session_state.col6.subheader("引き分けだ！ ")
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
             st.session_state.col6.subheader("{}回で正解した！".format(self.count))
         else:
+            self._play_song(num = -1, title = "bgm/loser.wav")
             st.session_state.col6.subheader("負けてしまった・・・次は勝とう！")
 
         st.session_state.col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
         st.session_state.col6.write("")
-        time.sleep(10)
+        time.sleep(13)
 
         if level_up:
+            self._music_stop()
             if evolution:
+                st.session_state.col4.subheader("おや?{}の様子が...".format(st.session_state.chara_name))
+                image_light = Image.open('picture/evolution_light.png')
+                st.session_state.col4.image(image_light)
+                self._play_song(num = 1,title = "bgm/evolution_light.mp3")
+                time.sleep(3)
+
                 st.session_state.col6.subheader("やったね, 進化した！")
-                img = Image.open('hitblow/picture/evolution.gif')
-                time.sleep(1)
+                pic_url2 = "picture/"+st.session_state.chara_name+"-2.jpg"
+                image = Image.open(pic_url2)
+                st.session_state.col4.image(image)
+                img = Image.open('picture/evolution.gif')
                 st.session_state.col6.image(img)
+                self._play_song(num = 1,title = "bgm/evolution.mp3")
+                time.sleep(3)
             else:
                 st.session_state.col6.subheader("レベルアップだ！")
-                self._level_up_song(num = 1,playtime = None)
-                img = Image.open('hitblow/picture/level-up.gif')
+                self._play_song(num = 1,title = "bgm/level_up.wav")
+                img = Image.open('picture/level-up.gif')
                 time.sleep(1)
                 st.session_state.col6.image(img)
 
@@ -519,3 +553,5 @@ class Playgame():
         st.session_state.col6.write("次のレベルまでの経験値：{}".format(remaining_exp))
         st.session_state.col6.write("今まで得た合計経験値：{}".format(st.session_state.exp))
         st.session_state.col6.subheader("")
+        st.session_state.col6.subheader("{}の現在のレベル : {}".format(st.session_state.chara_name,st.session_state.level))
+        st.session_state.col6.write("対戦回数 : {}".format(st.session_state.game_count))
