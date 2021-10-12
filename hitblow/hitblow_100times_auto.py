@@ -133,48 +133,48 @@ class Playgame():
         session.post(url_post_guess, headers=self.headers, json=post_data)
 
 
-    def _play_game_manual(self) -> None:
-        """手入力で遊ぶモード
-        対戦続行中で,自分のターンのとき, 推測した値をサーバーにpost
-        5秒ごとに自分のターンが来たかを確認
+    # def _play_game_manual(self) -> None:
+    #     """手入力で遊ぶモード
+    #     対戦続行中で,自分のターンのとき, 推測した値をサーバーにpost
+    #     5秒ごとに自分のターンが来たかを確認
 
-        : rtype : None
-        : return : なし
-        """
-        while self.room_state == 2:
-            self._get_table_by_API()
-            if self.room_state == 2 and self.now_player == self.player_name:
-                print("{}回目の入力です.".format(self.count+1))
-                self.num = self._get_your_num()
-                self._post_guess_by_API()
-                self._get_table_by_API()
-                self.hit = self.my_history[-1]["hit"]
-                self.blow = self.my_history[-1]["blow"]
-                print("-----"+self.num + "  {} Hit, {} Blow  !!".format(self.hit,self.blow))
-            else:
-                time.sleep(5)
-                continue
+    #     : rtype : None
+    #     : return : なし
+    #     """
+    #     while self.room_state == 2:
+    #         self._get_table_by_API()
+    #         if self.room_state == 2 and self.now_player == self.player_name:
+    #             print("{}回目の入力です.".format(self.count+1))
+    #             self.num = self._get_your_num()
+    #             self._post_guess_by_API()
+    #             self._get_table_by_API()
+    #             self.hit = self.my_history[-1]["hit"]
+    #             self.blow = self.my_history[-1]["blow"]
+    #             print("-----"+self.num + "  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+    #         else:
+    #             time.sleep(5)
+    #             continue
 
-            if self.room_state == 3:
-                break
+    #         if self.room_state == 3:
+    #             break
 
-    def _get_your_num(self) -> str :
-        """手入力で遊ぶモードで使用
-        予測した相手の数字を入力し, チェック
-        条件を満たさないと打ち直し
-        : rtype : str
-        : return : num
-        """
-        while True:
-            num = input("16進数で5桁の重複しない数字を入力してください ==> ")
-            judge = True
-            for i in num:
-                if i not in self.Tuple_16:
-                    judge = False
-            if judge == True and len(num) == self.digits and len(set(num)) == self.digits:
-                return num
-            else:
-                print("もう一度入力しなおしてください(16進数, 5桁, 重複なし)")
+    # def _get_your_num(self) -> str :
+    #     """手入力で遊ぶモードで使用
+    #     予測した相手の数字を入力し, チェック
+    #     条件を満たさないと打ち直し
+    #     : rtype : str
+    #     : return : num
+    #     """
+    #     while True:
+    #         num = input("16進数で5桁の重複しない数字を入力してください ==> ")
+    #         judge = True
+    #         for i in num:
+    #             if i not in self.Tuple_16:
+    #                 judge = False
+    #         if judge == True and len(num) == self.digits and len(set(num)) == self.digits:
+    #             return num
+    #         else:
+    #             print("もう一度入力しなおしてください(16進数, 5桁, 重複なし)")
 
 
     def _first_2_times(self) -> None:
@@ -341,33 +341,6 @@ class Playgame():
                 continue
 
 
-    def _play_game_auto(self) -> None:
-        """自動数当てモード
-        : rtype : None
-        : return : なし
-        """
-        self._first_three_times()
-        self._make_list_possible_ans_combination()
-        self._identify_number()
-
-
-    def run(self, mode="auto") -> None:
-        """ 数当てゲーム実行ランナー
-        対戦中の表示を出してから部屋を作成して答えをポストして対戦開始, 終わったら対戦終了と結果の表示
-        : param str mode : ゲームの実行モード("manual","auto")
-        : rtype : None
-        : return : なし
-        """
-        self._enterroom_and_registerplayer()
-        self._post_hidden_number()
-        if mode == "auto":
-            self._play_game_auto()
-        else:
-            self._play_game_manual()
-        self._show_result_vscode()
-        self._show_result_streamlit()
-
-
     def _show_result_vscode(self) -> None:
         """対戦終了後, お互いの結果を表示(vscode上に表示する分)
         : rtype : None
@@ -395,6 +368,20 @@ class Playgame():
         print("終了ターンの解答 : {}".format(self.num))
         print("------------------------")
 
+    def run(self) -> None:
+        """ 自動数当てゲーム実行ランナー
+        対戦中の表示を出してから部屋を作成して答えをポストして対戦開始, 終わったら対戦終了と結果の表示
+        : rtype : None
+        : return : なし
+        """
+        self._enterroom_and_registerplayer()
+        self._post_hidden_number()
+        self._first_2_times()
+        self._make_list_possible_ans_combination()
+        self._identify_number()
+        self._show_result_vscode()
+
+
 def get_parser() -> argparse.Namespace:
     """コマンドライン引数を解析したものを持つ
     :rtype : argparse.Namespace
@@ -402,19 +389,17 @@ def get_parser() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(description="Hit&Blow, 数当てゲーム")
     parser.add_argument("--ans",default=None)
-    parser.add_argument("--mode",default="auto")
     parser.add_argument("--roomid",default="6100")
 
     args = parser.parse_args()
     return args
 
 def main() -> None:
-    """Hit&Blowのメイン,パーサーは無くていいかも
-    web画面だけ表示しておいて, ボタンを押すと部屋作成ー自動対戦が始まる
+    """Hit&Blowのメイン
+    パーサーで指定したroom_idから昇順に100個の部屋に入って自動対戦する
     """
 
     args = get_parser()
-    mode = args.mode
     room_id = args.roomid
     room_id_int = int(room_id)
     ans= args.ans
@@ -425,7 +410,7 @@ def main() -> None:
             runner = Playgame(ans=ans,room_id=room_id)
         else:
             runner = Playgame(room_id=room_id)
-        runner.run(mode=mode)
+        runner.run()
 
 if __name__ == "__main__":
     main()

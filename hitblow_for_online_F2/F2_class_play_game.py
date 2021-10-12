@@ -1,8 +1,8 @@
 # coding : UTF-8
 """
-File Name: setup_and_play_game.py
-Description: Hit&Blowの主要なクラス
-Created on october 7,2021
+File Name: class_play_game.py
+Description: Hit&Blowの自動通信対戦の主要なクラス
+Created on october 13,2021
 Created by Hayato Mori, Kaito Isshiki, Chao Wang
 """
 import random
@@ -21,7 +21,7 @@ def initialize_streamlit() ->None:
     : rtype : None
     : return : なし
     """
-    st.session_state.col1,st.session_state.col2 = st.columns([7,3])
+    st.session_state.col1,st.session_state.col2 = st.columns([4,1])
     st.session_state.col4,st.session_state.space,st.session_state.col6 = st.columns([7,1,4])
 
     st.session_state.col1.title("Welcome to Hit&Blow Game！16進数5桁の数字を当てよう！")
@@ -48,8 +48,7 @@ def initialize_streamlit() ->None:
         st.session_state.col4.image(image)
 
 class Playgame():
-    """16進数5桁のHit&Blow
-    手入力で遊ぶモード, 自動探索で遊ぶモード(今後実装)
+    """16進数5桁のHit&Blow　自動通信対戦の数当てモード
 
     :param int digits : 数の桁数
     :param set Tuple_16 : 数に使う16進数の数字の集合
@@ -118,11 +117,13 @@ class Playgame():
         ans = "".join(ans_list)
         return ans
 
-    def _play_song(self,num:int, title):
+    def _play_song(self,num:int, title) -> None:
         """音楽再生
         :param int num:再生回数(-1で無限ループ，これを使って止めたいときにstopするのが良いかと)
         :param int playtime:再生時間(基本-1で無限ループしてるので、使わない．デフォルト値Noneで良い)
         :param str title:bgmフォルダ内にあるmp3ファイルを再生
+        : rtype : None
+        : return : なし
         """
         pygame.mixer.init()    # 初期設定
         pygame.mixer.music.load(title)     # 音楽ファイルの読み込み
@@ -131,11 +132,13 @@ class Playgame():
 
     def _music_stop(self) -> None:
         """再生中の音楽停止
+        : rtype : None
+        : return : なし
         """
         pygame.mixer.music.stop()               # 再生の終了
 
 
-    def _get_table_by_API(self):
+    def _get_table_by_API(self) -> None:
         """APIを用いてサーバーから部屋の状態,ターン,履歴を取得(ループで何回も使用)
         : rtype : None
         : return : なし
@@ -147,7 +150,7 @@ class Playgame():
         self.now_player = data["now_player"]
         self.my_history = data["table"]
 
-    def _post_guess_by_API(self):
+    def _post_guess_by_API(self) -> None:
         """APIを用いてサーバーに予想した相手の数字(self.num)をポスト
         : rtype : None
         : return : なし
@@ -157,7 +160,7 @@ class Playgame():
         session.post(url_post_guess, headers=self.headers, json=post_data)
 
 
-    def _enterroom_and_registerplayer(self):
+    def _enterroom_and_registerplayer(self) -> None:
         """部屋を作成し, 部屋に入り, 相手が来るまで待機
         3秒ごとに相手が来ているか確認して,相手が来たらゲームスタート
         : rtype : None
@@ -181,7 +184,7 @@ class Playgame():
         self.now_player = data["player1"]
 
 
-    def _post_hidden_number(self):
+    def _post_hidden_number(self) -> None:
         """APIを用いてサーバーに自分の答えをポスト(初回のみ)
         : rtype : None
         : return : なし
@@ -191,53 +194,54 @@ class Playgame():
         session.post(url_post_hidden_number,headers=self.headers,json=post_data)
 
 
-
-    def _play_game_manual(self) -> None:
-        """手入力で遊ぶモード
-        対戦続行中で,自分のターンのとき, 推測した値をサーバーにpost
-        5秒ごとに自分のターンが来たかを確認
-
+    def _first_3_times(self) -> None:
+        """進化前,最初に行う, 答えとなる数字がどのグループに何個あるのか特定
+        1秒ごとにget_tableで状態を確認し,
+        対戦続行中で,自分のターンのとき, 1,2,3回目に01234,56789,abcdeを選んでself.numに格納
+        post_guessし, 帰ってきたhit,blowの和をlist_ans_numに格納
+        remove_impossible_combinationを行う
+        自分のターンで無かったら, 1秒待機
+        試合終了だったらループを抜ける
         : rtype : None
         : return : なし
         """
-        while self.room_state == 2:
+        search_list = ["01234","56789","abcde"]
+        while True:
             self._get_table_by_API()
-            if self.room_state == 2 and self.now_player == self.player_name:
+            if self.room_state == 2 and self.now_player == self.player_name and self.count != 3:
                 print("{}回目の入力です.".format(self.count+1))
-                self.num = self._get_your_num()
+                self.num = search_list[self.count]
+                self.count += 1
                 self._post_guess_by_API()
                 self._get_table_by_API()
                 self.hit = self.my_history[-1]["hit"]
                 self.blow = self.my_history[-1]["blow"]
-                print("-----"+self.num + "  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+                self.list_num_place.append(self.hit + self.blow)
+                print("-----",self.num)
+                print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
+            if self.count == 3 or self.room_state == 3:
+                break
             else:
-                time.sleep(5)
+                time.sleep(0.5)
                 continue
 
-            if self.room_state == 3:
-                break
-
-    def _get_your_num(self) -> str :
-        """手入力で遊ぶモードで使用
-        予測した相手の数字を入力し, チェック
-        条件を満たさないと打ち直し
-        : rtype : str
-        : return : num
+    def _make_list_possible_ans_combination_3(self) -> None:
+        """進化前,2番目に行う
+        最初の3回で作ったlist_ans_numから, 答えの5数字の"組み合わせ"の候補を全て洗い出し,
+        list_possible_ans_combinationに格納
+        : rtype : None
+        : return : なし
         """
-        while True:
-            num = input("16進数で5桁の重複しない数字を入力してください ==> ")
-            judge = True
-            for i in num:
-                if i not in self.Tuple_16:
-                    judge = False
-            if judge == True and len(num) == self.digits and len(set(num)) == self.digits:
-                return num
-            else:
-                print("もう一度入力しなおしてください(16進数, 5桁, 重複なし)")
+        for i in itertools.combinations("01234", self.list_num_place[0]):
+            for j in itertools.combinations("56789", self.list_num_place[1]):
+                for k in itertools.combinations("abcde", self.list_num_place[2]):
+                    for l in itertools.combinations("f", self.digits-sum(self.list_num_place)):
+                        n = "".join(i+j+k+l)
+                    self.list_possible_ans_combination.append(n)
 
 
     def _first_2_times(self) -> None:
-        """自動数当てモードで最初に行う, 答えとなる数字がどのグループに何個あるのか特定
+        """進化後, 最初に行う, 答えとなる数字がどのグループに何個あるのか特定
         1秒ごとにget_tableで状態を確認し,
         対戦続行中で,自分のターンのとき, 1,2回目に01234,56789を選んでself.numに格納
         post_guessし, 帰ってきたhit,blowの和をlist_ans_numに格納
@@ -267,10 +271,9 @@ class Playgame():
                 time.sleep(0.5)
                 continue
 
-
     def _make_list_possible_ans_combination(self) -> None:
-        """自動数当てモードで2番目に行う
-        最初の3回で作ったlist_ans_numから, 答えの5数字の"組み合わせ"の候補を全て洗い出し,
+        """進化後, 2番目に行う
+        最初の2回で作ったlist_ans_numから, 答えの5数字の"組み合わせ"の候補を全て洗い出し,
         list_possible_ans_combinationに格納
         : rtype : None
         : return : なし
@@ -282,8 +285,8 @@ class Playgame():
                     self.list_possible_ans_combination.append(n)
 
 
-    def _remove_impossible_combination(self):
-        """自動数当てモードの3番目で使用
+    def _remove_impossible_combination(self) -> None:
+        """3番目で使用
         そのターンに質問で帰ってきたhit,blowの値を保存し, list_possible_ans_combinationの解の候補のiのうち
         self.numとiでhit,blowの和が一致しないものは答えの"組み合わせ"の候補としてありえないので候補から削除
         こうしてlist_possible_ans_combinationの中身を削っていく
@@ -297,8 +300,8 @@ class Playgame():
                 self.list_possible_ans_combination.remove(i)
 
 
-    def _remove_impossible_permutation(self):
-        """自動数当てモードの3番目で使用
+    def _remove_impossible_permutation(self) -> None:
+        """3番目で使用
         そのターンに質問で帰ってきたhitの値を保存し, list_possible_ansの解の候補のjのうち
         self.numとjでhitが一致しないものは答えの"順列"の候補としてありえないので候補から削除
         こうしてlist_possible_ansの中身を削っていく
@@ -314,7 +317,7 @@ class Playgame():
 
 
     def _check_hit_blow(self,num,ans) -> None:
-        """自動数当てモードの2つのremove関数内で使用
+        """2つのremove関数内で使用
         2つの引数を入力し, その2数のhit,blowを計算してself.hit, self.blowに格納
         : rtype : None
         : return : なし
@@ -330,13 +333,13 @@ class Playgame():
 
 
     def _identify_number(self) -> None:
-        """自動数当てモードで3番目に行う(1番のメイン部分)
+        """3番目に行う(1番のメイン部分)
         1秒ごとにget_tableで状態を確認し,
         対戦続行中で,自分のターンのとき, list_ans_num_combinationの中からランダムで質問する数字を選んでself.numに格納
         post_guessし, 帰ってきたhit,blowをprintし, remove_impossible_combinationを行う
         hit+blow = 5の(組み合わせが特定出来た)ときは, まずその結果からあり得る数字の順列120通りのlist_possible_ansを作成
         次にそのターンのhit,blowからあり得ないものを削除し, 順列を考える次の関数(後述)に移る
-        自分のターンで無かったら, 1秒待機
+        自分のターンで無かったら, 0.5秒待機
         試合終了だったらループを抜ける
         : rtype : None
         : return : なし
@@ -360,7 +363,8 @@ class Playgame():
                         m = "".join(i)
                         self.list_possible_ans.append(m)
                     print("----------from 5C to 5P----------")
-                    self._remove_impossible_permutation()
+                    if st.session_state.level >= 20:
+                        self._remove_impossible_permutation()
                     self._identify_permutation()
                     break
                 else:
@@ -373,11 +377,11 @@ class Playgame():
 
 
     def _identify_permutation(self) -> None:
-        """自動数当てモードの3番目で使用
+        """3番目で使用
         1秒ごとにget_tableで状態を確認し,
         対戦続行中で,自分のターンのとき, list_ans_numの中からランダムで質問する数字を選んでself.numに格納
         post_guessし, 帰ってきたhitをprintし, remove_impossible_ansを行う
-        自分のターンで無かったら, 1秒待機
+        自分のターンで無かったら, 0.5秒待機
         試合終了だったらループを抜ける
         : rtype : None
         : return : なし
@@ -395,17 +399,16 @@ class Playgame():
                 print("-----",self.num)
                 print("!!  {} Hit, {} Blow  !!".format(self.hit,self.blow))
                 self._remove_impossible_permutation()
-            if self.room_state == 3 :
+            if self.room_state == 3:
                 break
             else:
                 time.sleep(0.5)
                 continue
 
 
-    def run(self, mode="auto") -> None:
+    def run(self) -> None:
         """ 数当てゲーム実行ランナー
         対戦中の表示を出してから部屋を作成して答えをポストして対戦開始, 終わったら対戦終了と結果の表示
-        : param str mode : ゲームの実行モード("manual","auto")
         : rtype : None
         : return : なし
         """
@@ -415,13 +418,13 @@ class Playgame():
         self._enterroom_and_registerplayer()
         self._post_hidden_number()
         place.write("対戦中・・・")
-        if mode == "auto":
+        if st.session_state.level >= 20:
             self._first_2_times()
             self._make_list_possible_ans_combination()
-            self._identify_number()
         else:
-            self._play_game_manual()
-
+            self._first_3_times()
+            self._make_list_possible_ans_combination_3()
+        self._identify_number()
         place.write("対戦終了！")
         self._music_stop()
         self._show_result_vscode()
@@ -457,6 +460,7 @@ class Playgame():
     def _get_information(self) -> str:
         """対戦終了後,web画面に表示する内容を計算
         勝敗,連勝に応じて獲得経験値を求め, 経験値に加える.レベルや次のレベルまでの必要経験値も求める
+        レベルアップと進化の判定も行う
         : rtype : str
         : return : 獲得経験値と次のレベルまでの必要経験値
         """
@@ -497,6 +501,7 @@ class Playgame():
     def _show_result_streamlit(self) -> None:
         """対戦終了後, お互いの結果を表示(web画面上に表示する分)
         勝敗、連勝数に応じて表示を変える, 経験値やレベル, 対戦回数も表示
+        進化やレベルアップの時は追加のエフェクト
         : rtype : None
         : return : なし
         """
@@ -523,6 +528,7 @@ class Playgame():
 
         st.session_state.col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
         st.session_state.col6.write("")
+        st.session_state.col6.write(self.my_history)
         time.sleep(13)
 
         if level_up:

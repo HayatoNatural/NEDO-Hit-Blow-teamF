@@ -2,7 +2,7 @@ import random
 import itertools
 import argparse
 import time
-
+import copy
 class Playgame_vscode:
 
     def __init__(self,ans=None,mode="manual") -> None:
@@ -92,13 +92,13 @@ class Playgame_vscode:
             if self.hit + self.blow != hb:
                 self.list_possible_ans_combination.remove(i)
 
-    def _remove_impossible_permutation(self):
+    def _remove_impossible_permutation(self,list):
         hit = self.hit
-        for i in self.list_possible_ans[:]:
+        for i in list[:]:
             self._check_hit_blow(self.num,i)
             # print("hit:{},self_hit:{}, selfnum:{}, k:{}, count:{}".format(hit,self.hit,self.num,i,count))
             if self.hit != hit:
-                self.list_possible_ans.remove(i)
+                list.remove(i)
 
 
     def _identify_number(self):
@@ -124,7 +124,7 @@ class Playgame_vscode:
                     m = "".join(i)
                     self.list_possible_ans.append(m)
                 print("----------from 5C to 5P----------")
-                self._remove_impossible_permutation()
+                self._remove_impossible_permutation(self.list_possible_ans)
                 self._identify_permutation()
                 break
             else:
@@ -138,6 +138,18 @@ class Playgame_vscode:
                 print(self.list_possible_ans)
                 self.num = self._get_your_num()
             else:
+                print(self.list_possible_ans)
+                # dict_to_choose_next_num = {}
+                # for next_num in self.list_possible_ans:
+                #     remain_ans_num = 0
+                #     for h_ans in self.list_possible_ans:
+                #         list_possible_ans = copy.deepcopy(self.list_possible_ans)
+                #         self._check_hit_blow(next_num,h_ans)
+                #         self._remove_impossible_permutation(list_possible_ans)
+                #         remain_ans_num += len(list_possible_ans)
+                #     dict_to_choose_next_num[next_num] = remain_ans_num
+                # print(dict_to_choose_next_num)
+                # self.num = min((v, k) for k, v in dict_to_choose_next_num.items())[1]
                 self.num = random.choice(self.list_possible_ans)
             self.history.append(self.num)
             self.count += 1
@@ -147,7 +159,7 @@ class Playgame_vscode:
             if self.hit == self.digits:
                 print("正解です！")
                 break
-            self._remove_impossible_permutation()
+            self._remove_impossible_permutation(self.list_possible_ans)
 
 
     def _get_your_num(self) -> str :
@@ -211,12 +223,15 @@ def main() -> None:
     ans= args.ans
     mode = args.mode
 
-    if args.ans is not None:
-        runner = Playgame_vscode(ans=ans,mode=mode)
-    else:
-        runner = Playgame_vscode(mode=mode)
-
-    runner.run()
+    sum_count = 0
+    for _ in range(20):
+        if args.ans is not None:
+            runner = Playgame_vscode(ans=ans,mode=mode)
+        else:
+            runner = Playgame_vscode(mode=mode)
+        runner.run()
+        sum_count += runner.count
+    print("10回の平均必要回答数 : {}".format(sum_count/20))
 
 if __name__ == "__main__":
     main()
