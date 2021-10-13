@@ -1,10 +1,10 @@
 import sys
-import pytest
-from hitblow_for_online_F2.setup_and_play_game_for_F2 import Playgame
+
+from PIL.Image import NONE
+from hitblow.Numberguess3 import main,Numberguess2
 
 
-sys.path.append("/home/cwang/vscode_savings/NEDO-Hit-Blow-teamF/hitblow_for_online_F2")
-sys.path.append("/home/cwang/vscode_savings/NEDO-Hit-Blow-teamF/hitblow")
+sys.path.append("/home/cwang/vscode_savings/New_path/NEDO-Hit-Blow-teamF/hitblow")
 
 def test_main() ->None:
     """Hit&Blowのメイン
@@ -15,10 +15,13 @@ def test_main() ->None:
     room_id = args.roomid
     ans= args.ans
     """
-    runner = Playgame(ans=None,room_id=6010)
-    data=runner.run("auto")
+    ans=None
+    if ans is not None:
+        runner = Numberguess2(ans=ans)
+    else:
+        runner = Numberguess2()
+    digits,history=runner._play_game_auto()
 
-    assert data["hit"]==5
-    assert data["state"]==3
+    assert digits==5
 
 # python -m pytest tests/
