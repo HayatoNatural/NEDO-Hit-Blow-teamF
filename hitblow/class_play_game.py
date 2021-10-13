@@ -540,6 +540,7 @@ class Playgame():
             st.session_state.col6.subheader("負けてしまった・・・次は勝とう！")
 
         st.session_state.col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
+        st.session_state.col6.write("履歴")
         st.session_state.col6.write("")
         st.session_state.col6.write(self.my_history)
         time.sleep(13)

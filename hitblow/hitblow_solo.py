@@ -103,6 +103,7 @@ class Playgame_solo_auto:
             st.session_state.level = 1
         name = col4.selectbox("キャラクターを選んでね",["ジャック","クリス","フローラ","ドロシー"])
         st.session_state.chara_name = name
+        self._voice_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/waiting.wav')
         pic_url1 = "picture/"+name+"-1.jpg"
         pic_url2 = "picture/"+name+"-2.jpg"
         if st.session_state.level < 20:
@@ -132,7 +133,7 @@ class Playgame_solo_auto:
         """
         pygame.mixer.music.stop()               # 再生の終了
 
-    def _sound_play(self,num:int, title):
+    def _voice_play(self,num:int, title):
         pygame.mixer.init()    # 初期設定
         sound = pygame.mixer.Sound(title)     # 音楽ファイルの読み込み
         sound.set_volume(self.volume)
@@ -334,7 +335,9 @@ class Playgame_solo_auto:
         col6.write("対戦回数 : {}".format(st.session_state.game_count))
         place = col6.empty()
         place.write("対戦中・・・")
+        time.sleep(3)
         self._play_song(num = 1,title = "bgm/game_start.wav")
+        self._voice_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/game_start.wav')
         time.sleep(3)
         self._play_song(num = -1,title = "bgm/Battle.wav")
         if st.session_state.level >= 20:
@@ -396,7 +399,7 @@ class Playgame_solo_auto:
         new_exp,remaining_exp,level_up,evolution = self._get_experience()
         self._music_stop()
         self._play_song(num = -1, title = "bgm/winner.wav")
-        self._sound_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/winner.wav')
+        self._voice_play(num = 1, title = 'voice/'+st.session_state.chara_name+'/winner.wav')
         col6.subheader("")
         col6.subheader("勝利だ,おめでとう！")
         col6.subheader("正解は‥【{}】{}回で正解できた！".format(self.num,self.count))
