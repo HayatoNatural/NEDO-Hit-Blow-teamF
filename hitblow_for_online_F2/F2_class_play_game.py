@@ -176,10 +176,10 @@ class Playgame():
             data = result.json()
             self.room_state = data["state"]
             time.sleep(3)
-        self._music_stop()
-        self._play_song(num = 1,title = "bgm/game_start.wav")
-        time.sleep(3)
-        self._play_song(num = -1,title = "bgm/Battle.wav")
+        #self._music_stop()
+        #self._play_song(num = 1,title = "bgm/game_start.wav")
+        #time.sleep(3)
+        #self._play_song(num = -1,title = "bgm/Battle.wav")
         self.opponent_name = data["player2"] if data["player1"] == "F" else data["player1"]
         self.now_player = data["player1"]
 
@@ -426,7 +426,7 @@ class Playgame():
             self._make_list_possible_ans_combination_3()
         self._identify_number()
         place.write("対戦終了！")
-        self._music_stop()
+        #self._music_stop()
         self._show_result_vscode()
         self._show_result_streamlit()
 
@@ -509,7 +509,7 @@ class Playgame():
         time.sleep(3)
         st.session_state.col6.subheader("")
         if self.winner == self.player_name:
-            self._play_song(num = -1, title = "bgm/winner.wav")
+            #self._play_song(num = -1, title = "bgm/winner.wav")
             st.session_state.col6.subheader("勝利だ,おめでとう！")
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
             st.session_state.col6.subheader("{}回で正解できた！".format(self.count))
@@ -518,12 +518,12 @@ class Playgame():
                 st.session_state.col6.subheader("すごいぞ,{}連勝だ！この調子！".format(st.session_state.win_in_a_row))
             st.balloons()
         elif self.winner == None:
-            self._play_song(num = -1, title = 'bgm/draw.mp3')
+            #self._play_song(num = -1, title = 'bgm/draw.mp3')
             st.session_state.col6.subheader("引き分けだ！ ")
             st.session_state.col6.subheader("正解は‥【{}】".format(self.num))
             st.session_state.col6.subheader("{}回で正解した！".format(self.count))
         else:
-            self._play_song(num = -1, title = "bgm/loser.wav")
+            #self._play_song(num = -1, title = "bgm/loser.wav")
             st.session_state.col6.subheader("負けてしまった・・・次は勝とう！")
 
         st.session_state.col6.write("{}は{}経験値を得た！".format(st.session_state.chara_name,new_exp))
@@ -532,12 +532,12 @@ class Playgame():
         time.sleep(13)
 
         if level_up:
-            self._music_stop()
+            #self._music_stop()
             if evolution:
                 st.session_state.col4.subheader("おや?{}の様子が...".format(st.session_state.chara_name))
                 image_light = Image.open('picture/evolution_light.png')
                 st.session_state.col4.image(image_light)
-                self._play_song(num = 1,title = "bgm/evolution_light.mp3")
+                #self._play_song(num = 1,title = "bgm/evolution_light.mp3")
                 time.sleep(3)
 
                 st.session_state.col6.subheader("やったね, 進化した！")
@@ -546,11 +546,11 @@ class Playgame():
                 st.session_state.col4.image(image)
                 img = Image.open('picture/evolution.gif')
                 st.session_state.col6.image(img)
-                self._play_song(num = 1,title = "bgm/evolution.mp3")
+                #self._play_song(num = 1,title = "bgm/evolution.mp3")
                 time.sleep(3)
             else:
                 st.session_state.col6.subheader("レベルアップだ！")
-                self._play_song(num = 1,title = "bgm/level_up.wav")
+                #self._play_song(num = 1,title = "bgm/level_up.wav")
                 img = Image.open('picture/level-up.gif')
                 time.sleep(1)
                 st.session_state.col6.image(img)
