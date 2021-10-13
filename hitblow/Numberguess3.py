@@ -1,7 +1,7 @@
 import random
 import itertools
 import argparse
-
+from typing import List, Tuple, Dict
 class Numberguess2:
 
     def __init__(self,ans=None) -> None:
@@ -150,11 +150,16 @@ class Numberguess2:
 
         print("------------------------")
 
-    def _play_game_auto(self) -> None:
+    def _play_game_auto(self) -> Tuple[int, List[int]]:
         self._first_2_times()
         self._make_list_possible_ans_combination_2()
         self._identify_number()
         self._show_result()
+        return self._get_history()
+
+    def _get_history(self) -> Tuple[int, List[int]]:
+        return self.digits,self.history
+
 
 
 def get_parser() -> argparse.Namespace:
@@ -180,7 +185,7 @@ def main() -> None:
             runner = Numberguess2(ans=ans)
         else:
             runner = Numberguess2()
-        runner._play_game_auto()
+        digits,history=runner._play_game_auto()
         sum_count += runner.count
     print("100回の平均必要回答数 : {}".format(sum_count/100))
 
