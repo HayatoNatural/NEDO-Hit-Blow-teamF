@@ -13,7 +13,8 @@ import streamlit as st
 import pygame
 st.set_page_config(layout="wide")
 col1,col2 =st.columns([4,1])
-col4,space,col6 =st.columns([7,1,4])
+col4,space,col6 =st.columns([7,1,4]) 
+button_num = 0
 
 def initialize_streamlit() -> None:
     """クラスを定義する前にweb上で画面を出しておく
@@ -24,6 +25,7 @@ def initialize_streamlit() -> None:
     col1.title("Welcome to Hit&Blow Game！16進数5桁の秘密の数字を当てよう！")
     col1.subheader("対戦すると経験値がもらえるよ. 経験値は当てた回数や連勝数に応じて増えるぞ！")
     col1.subheader("経験値が貯まるとレベルアップだ！いずれはキャラが進化するかも‥？")
+    
     if 'game_count' not in st.session_state:
         st.session_state.game_count = 1
     if 'exp' not in st.session_state:
@@ -77,7 +79,6 @@ class Playgame_solo_manual:
         if 'ans' not in st.session_state:
             st.session_state.ans= self.ans
         self.num = num
-
     def _define_answer(self) -> str:
         """自分が当てる答えをつくる
         : rtype : str
@@ -106,6 +107,16 @@ class Playgame_solo_manual:
         : return : なし
         """
         pygame.mixer.music.stop()               # 再生の終了
+    
+    def _voice_play(self,num:int, title):
+        """音楽再生中のキャラボイス再生用
+        : rtype : None
+        : return : なし
+        """
+        pygame.mixer.init()    # 初期設定
+        sound = pygame.mixer.Sound(title)     # 音楽ファイルの読み込み
+        sound.set_volume(self.volume)
+        sound.play()
 
 
     def _check_hit_blow(self,num,ans) -> None:
@@ -129,12 +140,16 @@ class Playgame_solo_manual:
         : rtype : None
         : return : なし
         """
-        self._music_stop()
+        #self._music_stop()
         place = col6.empty()
         place.write("対戦中・・・")
-        self._play_song(num = 1,title = "bgm/game_start.wav")
-        time.sleep(3)
-        self._play_song(num = -1,title = "bgm/Battle.wav")
+        if st.session_state.turn_count == 0:
+            self._music_stop()
+            time.sleep(3)
+            self._play_song(num = 1,title = "bgm/game_start.wav")
+            self._voice_play(num = 1, title ='voice/'+st.session_state.chara_name+'/game_start.wav')
+            time.sleep(3)
+            self._play_song(num = -1,title = "bgm/Battle.wav")
         print("aaaaa")
         self._check_hit_blow(self.num,st.session_state.ans)
         st.session_state.history[self.num] = [str(self.hit)+"hit", str(self.blow)+"blow"]
@@ -197,6 +212,7 @@ class Playgame_solo_manual:
         new_exp,remaining_exp,level_up,evolution = self._get_information()
         self._music_stop()
         self._play_song(num = -1, title = "bgm/winner.wav")
+        self._voice_play(num = 1, title ='voice/'+st.session_state.chara_name+'/winner.wav')
         col6.subheader("")
         col6.subheader("勝利だ,おめでとう！")
         col6.subheader("正解は‥【{}】{}回で正解できた！".format(self.num,st.session_state.turn_count))
@@ -257,16 +273,22 @@ def main() -> None:
     """
     args = get_parser()
     ans= args.ans
-
-    initialize_streamlit()
+    
     num = col6.text_input("予想する数字を入力してね")
-
+    print(button_num)
+    initialize_streamlit()
+    
+    
     if args.ans is not None:
         runner = Playgame_solo_manual(ans=ans,num=num)
     else:
         runner = Playgame_solo_manual(num=num)
-    runner._play_song(num = -1,title = 'bgm/waiting.wav')
 
+    if st.session_state.turn_count == 0:
+        runner._play_song(num = -1,title = 'bgm/waiting.wav')
+        runner._voice_play(num = 1, title ='voice/'+st.session_state.chara_name+'/waiting.wav')
+
+        
     if col6.button("クリックすると数字をチェックするよ!"):
         runner._play_game_manual()
 
